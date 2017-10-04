@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">My Application</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <!-- Menu Items -->
+    <string name="island">海南岛陆域生态保护红线</string>
+    <string name="sea">海洋生态保护红线区</string>
+
+    <string name="search_by_screenlocation">正在努力搜索点击位置相关的目标搜索，\n响应时间依赖于服务器效率与网络环境，\n请耐心等待！</string>
+
+</resources>

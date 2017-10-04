@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution satellite imagery worldwide.
+    The map includes 15m TerraColor imagery at small and mid-scales (591M down to 72k) and 2.5m SPOT Imagery (288k to 72k) for the world,
+    and USGS 15m Landsat imagery for Antarctica.
+    The map features 0.3m resolution imagery in the continental United States and 0.6m resolution imagery in parts of Western Europe from Digital Globe.
+     Recent 1m USDA NAIP imagery is available in select states of the US. In other parts of the world, 1 meter resolution imagery is available from GeoEye IKONOS, AeroGRID, and IGN Spain.
+     Additionally, imagery at different resolutions has been contributed by the GIS User Community. For more information on this map, including the terms of use,
+     visit us online at http://goto.arcgisonline.com/maps/World_Imagery  -->
+    <string name="world_imagery_service">https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer</string>
+
+    <!-- The SampleWorldCities service is provided so you can quickly and easily preview the functionality of the GIS server.
+    Click the thumbnail image to open in a web application.
+    This sample service is optional and can be deleted.  -->
+    <string name="world_cities_service">http://sampleserver6.arcgisonline.com/arcgis/rest/services/SampleWorldCities/MapServer</string>
+
+
+    <!-- This worldwide street map presents highway-level data for the world. Street-level data includes the United States;
+    much of Canada; Mexico; Europe; Japan; Australia and New Zealand; India; South America and Central America; Africa; and most of the Middle East.
+    This comprehensive street map includes highways, major roads, minor roads, one-way arrow indicators, railways, water features, administrative boundaries, cities, parks, and landmarks, overlaid on shaded relief imagery for added context.
+    The map also includes building footprints for selected areas. Coverage is provided down to ~1:4k with ~1:1k and ~1:2k data available in select urban areas.
+    The street map was developed by Esri using Esri basemap data, DeLorme basemap layers, U.S. Geological Survey (USGS) elevation data,
+    Intact Forest Landscape (IFL) data for the world; HERE data for Europe, Australia and New Zealand, North America, South America and Central America, Africa, and most of the Middle East;
+    OpenStreetMap contributors for select countries in Africa and Pacific Islands; MapmyIndia data in India; NGCC data for China; and select data from the GIS user community.
+     For more information on this map, including the terms of use, visit us online at http://goto.arcgisonline.com/maps/World_Street_Map  -->
+    <string name="world_street_service">https://services.arcgisonline.com/arcgis/rest/services/World_Street_Map/MapServer</string>
+
+    <!--This map presents the Natural Earth physical map at 1.24km per pixel for the world and 500m for the coterminous United States.
+    For more information on this map, including our terms of use, visit us online at http://goto.arcgisonline.com/maps/World_Physical_Map   -->
+    <string name="world_physical_service">https://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer</string>
+
+
+
+    <!--FOR DEMO PURPOSES ONLY. The process of blending the elevation datasets is not complete. Updates to this dataset will become available periodically.
+    The three components of the mosaiced DEM of the entire globe (elevation and bathymetry) resampled to the resolution of the finest part (SRTM) of 92.5 meters.   -->
+    <string name="world_elevation_service">http://sampleserver5.arcgisonline.com/arcgis/rest/services/Elevation/WorldElevations/MapServer</string>
+
+    <!--This map portrays surface elevation as shaded relief.
+    This map is used as a basemap layer to add shaded relief to other GIS maps, such as the ArcGIS Online World Street Map.
+     It is especially useful in maps that do not contain orthoimagery.
+     The map resolution (cell size) is as follows: 30 Meters for the U.S. 90 Meters for all land areas between 60° north and 56° south latitude.
+      1 KM resolution above 60° north and 56° south.
+      The shaded relief imagery was developed by Esri using GTOPO30, Shuttle Radar Topography Mission (SRTM), and National Elevation Data (NED) data from the USGS.
+    For more information on this map, including our terms of use, visit us online at http://goto.arcgisonline.com/maps/World_Shaded_Relief   -->
+    <string name="world_shaded_service">http://services.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer</string>
+
+    <!-- World Topo Map Service URL -->
+    <string name="world_topo_service">http://services.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer</string>
+
+
+    <!-- This service presents various population statistics from Census 2000, including total population, population density, racial counts, and more.
+     The map service presents statistics at the state, county, block group, and block point levels.
+     This is a sample service hosted by ESRI, powered by ArcGIS Server.
+    ESRI reserves the right to change or remove this service at any time and without notice.  -->
+    <string name="world_census_service">http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer</string>
+
+
+
+    <!-- Sample Strings -->
+    <string name="sample6_service_url">http://sampleserver6.arcgisonline.com/arcgis/rest/services/DamageAssessment/FeatureServer/0</string>
+
+    <!-- World Topo Map Service URL  TDT-->
+    <string name="world_TDT_service">http://t0.tianditu.com/img_w/wmts</string>
+
+
+    <!-- HaiNan Map Service-->
+    <string name="yizhanglantu_service">http://218.77.183.85:6080/arcgis/rest/services/yizhanglantu/MapServer</string>
+
+    <!-- HaiNan Map Service-->
+    <string name="yizhanglantu_0_service">http://218.77.183.85:6080/arcgis/rest/services/yizhanglantu/MapServer/0</string>
+
+    <!-- ArcGIS Online URL -->
+    <string name="portal_arcgisonline">"https://your-org.arcgis.com/"</string>
+</resources>

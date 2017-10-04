@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Show DB DATA">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/db_all"
+                    android:icon="@drawable/pic_china_64_gray"
+                    android:title="所有图层" />
+                <item
+                    android:id="@+id/states"
+                    android:icon="@drawable/pic_village_32_green"
+                    android:title="州人口" />
+                <item
+                    android:id="@+id/counties"
+                    android:icon="@drawable/pic_people_32_green"
+                    android:title="县人口" />
+                <item
+                    android:id="@+id/group"
+                    android:icon="@drawable/pic_house_32_blue"
+                    android:title="小组人口" />
+                <item
+                    android:id="@+id/point"
+                    android:icon="@drawable/pic_person_32_blue"
+                    android:title="点人口" />
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="BASEMAP">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/item_world_imagery"
+                    android:icon="@drawable/pic_china_64_gray"
+                    android:title="影像底图" />
+
+                <item
+                    android:id="@+id/item_world_cities"
+                    android:icon="@drawable/pic_china_64_gray"
+                    android:title="行政区划" />
+
+                <item
+                    android:id="@+id/item_world_streets"
+                    android:icon="@drawable/pic_china_64_gray"
+                    android:title="街区图" />
+
+                <item
+                    android:id="@+id/item_world_physical"
+                    android:icon="@drawable/pic_world_64_gray"
+                    android:title="地理图" />
+
+                <item
+                    android:id="@+id/item_world_elevation"
+                    android:icon="@drawable/pic_world_64_gray"
+                    android:title="海拔图" />
+
+                <item
+                    android:id="@+id/item_world_shaded"
+                    android:icon="@drawable/pic_world_64_gray"
+                    android:title="山影图" />
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="FUNCTION">
+        <menu>
+            <item
+                android:id="@+id/touch_location"
+                android:icon="@drawable/pic_active_location_64_gray"
+                android:title="点选位置" />
+            <item
+                android:id="@+id/nav_screencapture"
+                android:icon="@drawable/ic_menu_camera"
+                android:title="地图截屏" />
+            <item
+                android:id="@+id/nav_gallery"
+                android:icon="@drawable/ic_menu_gallery"
+                android:title="Gallery" />
+            <item
+                android:id="@+id/nav_slideshow"
+                android:icon="@drawable/ic_menu_slideshow"
+                android:title="Slideshow" />
+            <item
+                android:id="@+id/nav_manage"
+                android:icon="@drawable/ic_menu_manage"
+                android:title="Tools" />
+        </menu>
+    </item>
+
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Share" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Send" />
+        </menu>
+    </item>
+
+</menu>
