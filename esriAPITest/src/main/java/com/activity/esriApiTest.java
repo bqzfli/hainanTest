@@ -1,4 +1,4 @@
-package com.example.hnTest;
+package com.activity;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -16,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.example.hnTest.R;
 import com.lisa.esri.manager.Selection;
 import com.lisa.esri.method.EsriMethod;
 

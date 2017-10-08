@@ -15,9 +15,10 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
-        maven{
-            url 'https://esri.bintray.com/arcgis'
-        }
+        maven { url 'https://esri.bintray.com/arcgis' }
+        maven { url "https://jitpack.io" }
+        mavenCentral()
+
     }
 }
 

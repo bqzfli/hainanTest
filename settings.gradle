@@ -1,1 +1,1 @@
-include ':app', ':esriAPITest'
+include ':esriAPITest'
