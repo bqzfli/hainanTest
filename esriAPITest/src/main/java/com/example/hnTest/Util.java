@@ -28,6 +28,11 @@ public class Util {
     public static String GEOJSON = "GOEJSON";
 
     /**
+     * 调查对象主键
+     */
+    public static String OBJECTID = "OBJECTID";
+
+    /**
      * 查询用进度条
      */
     private static ProgressDialog mProgressDialogSearching = null;

@@ -655,20 +655,20 @@ public class EsriMethod {
                 Util.showProgressDialog(context,context.getResources().getString(R.string.search_by_screenlocation));
 
                 // -------------- 点击位置查找 --------------
-                /*int toleranceMap = 5000;
+                int toleranceMap = 5000;
                 int tolerancePixel = Math.round(toleranceMap/Math.round(mapView.getUnitsPerDensityIndependentPixel()));
-                tolerancePixel = tolerancePixel>100?99:tolerancePixel;//tolerancePixel不能大于100
-                searchInMapByScreenLocation(context,mapView,layer,screenPoint,tolerancePixel);*/
+                tolerancePixel = 25;//tolerancePixel>100?99:tolerancePixel;//tolerancePixel不能大于100
+                searchInMapByScreenLocation(context,mapView,layer,screenPoint,tolerancePixel);
 
                 // -------------- 范围查找 ------------------
-                // 屏幕点
+               /* // 屏幕点
                 Point clickPoint = mMapView.screenToLocation(screenPoint);
                 // 将容错范围转换为地图坐标，此处为“米”
                 double mapTolerance = 50;
                 // 创建一个查询范围
                 Envelope envelope = new Envelope(clickPoint.getX() - mapTolerance, clickPoint.getY() - mapTolerance, clickPoint.getX() + mapTolerance, clickPoint.getY() + mapTolerance, mapView.getSpatialReference());
                 // 根据空间范围查询
-                searchInMapByScreenLocation(context,mapView,mFeatureLayer,envelope);
+                searchInMapByScreenLocation(context,mapView,mFeatureLayer,envelope);*/
                 return true;
             }
         });

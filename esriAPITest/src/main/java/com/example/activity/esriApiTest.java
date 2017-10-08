@@ -17,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -30,10 +31,13 @@ import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.example.hnTest.R;
+import com.lisa.esri.adapter.CoverFlowAdapter;
 import com.lisa.esri.manager.Selection;
 import com.lisa.esri.method.EsriMethod;
 
 import java.util.Date;
+
+import it.moondroid.coverflow.components.ui.containers.FeatureCoverFlow;
 
 import static com.example.hnTest.R.id.mapView;
 
@@ -44,6 +48,7 @@ public class esriApiTest extends AppCompatActivity
     private MapView mMapView;
     private EsriMethod mEsriMethod = new EsriMethod();
     private SearchView mSearchView = null;
+    private FeatureCoverFlow mFeatureCoverFlow = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,14 +67,21 @@ public class esriApiTest extends AppCompatActivity
             public void onClick(View view) {
                 String title = "查询结果";//"Replace with your own action";
                 String info =  "Action";
-                info = Selection.getSearchResultFromOperationLayer();
-                Snackbar.make(view,title, Snackbar.LENGTH_INDEFINITE)
-                        .setAction(info, new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                return;
-                            }
-                        }).show();
+                if(Selection.SearchResultFromOperationLayer!=null&&Selection.SearchResultFromOperationLayer.size()!=0){
+                    CoverFlowAdapter adapter = new CoverFlowAdapter(esriApiTest.this);
+                    adapter.setData(Selection.SearchResultFromOperationLayer);
+                    mFeatureCoverFlow.setAdapter(adapter);
+                    mFeatureCoverFlow.setVisibility(View.VISIBLE);
+                }else {
+                    info = Selection.getSearchResultFromOperationLayer();
+                    Snackbar.make(view, title, Snackbar.LENGTH_INDEFINITE)
+                            .setAction(info, new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    return;
+                                }
+                            }).show();
+                }
             }
         });
 
@@ -84,10 +96,18 @@ public class esriApiTest extends AppCompatActivity
 
         ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        //获取地图控件
+        // 获取地图控件
         mMapView = (MapView) findViewById(mapView);
         // 获取设备位置显示控制的控件
         mSpin = (Spinner) findViewById(R.id.spinner);
+        // 获取查找结果的属性显示
+        mFeatureCoverFlow = (FeatureCoverFlow)findViewById(R.id.coverflow);
+        mFeatureCoverFlow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mFeatureCoverFlow.setVisibility(View.GONE);
+            }
+        });
 
         //设置基础底图
         //天地图底图
@@ -136,7 +156,7 @@ public class esriApiTest extends AppCompatActivity
         mSearchView = (SearchView) MenuItemCompat.getActionView(item);
         mSearchView.setIconifiedByDefault(false);
         SearchView.SearchAutoComplete edit = (SearchView.SearchAutoComplete) mSearchView.findViewById(R.id.search_src_text);
-        String value = "4";
+        String value = "u";
         edit.setText(value);
         edit.setSelection(value.length());
         final String strQueryField = getResources().getString(R.string.query_field);
