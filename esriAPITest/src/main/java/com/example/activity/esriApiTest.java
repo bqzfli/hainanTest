@@ -1,4 +1,4 @@
-package com.activity;
+package com.example.activity;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -6,15 +6,28 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
+import com.esri.arcgisruntime.data.Feature;
+import com.esri.arcgisruntime.data.FeatureQueryResult;
+import com.esri.arcgisruntime.data.QueryParameters;
+import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.example.hnTest.R;
 import com.lisa.esri.manager.Selection;
@@ -30,6 +43,7 @@ public class esriApiTest extends AppCompatActivity
     private Spinner mSpin;
     private MapView mMapView;
     private EsriMethod mEsriMethod = new EsriMethod();
+    private SearchView mSearchView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,9 +130,54 @@ public class esriApiTest extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.esri_api_test, menu);
+        
+        final MenuItem item = menu.findItem(R.id.action_search);
+    
+        mSearchView = (SearchView) MenuItemCompat.getActionView(item);
+        mSearchView.setIconifiedByDefault(false);
+        SearchView.SearchAutoComplete edit = (SearchView.SearchAutoComplete) mSearchView.findViewById(R.id.search_src_text);
+        String value = "4";
+        edit.setText(value);
+        edit.setSelection(value.length());
+        mSearchView.setQueryHint("输入查找对象的“F_CAPTION”");
+    
+        final LinearLayout search_edit_frame = (LinearLayout) mSearchView.findViewById(R.id.search_edit_frame);
+        search_edit_frame.setClickable(true);
+    
+        edit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                search_edit_frame.setPressed(hasFocus);
+            }
+        });
+    
+        edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                search_edit_frame.setPressed(true);
+            }
+        });
+    
+        edit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+             /*判断是否是“GO”键*/
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                /*隐藏软键盘*/
+                    mSearchView.clearFocus();
+                    search_edit_frame.setPressed(false);
+                    String value = v.getText().toString();
+                    //TODO 对所有数据进行查找，通过"F_CAPTION"字段进行查找
+                    mEsriMethod.initSearchByField(esriApiTest.this,mMapView,"NAME", value);
+                    return true;
+                }
+                return false;
+            }
+        });
         return true;
     }
-
+    
+    
     @Override
     protected void onPause(){
         mMapView.pause();

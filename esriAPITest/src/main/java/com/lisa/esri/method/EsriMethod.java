@@ -23,13 +23,16 @@ import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.LicenseInfo;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.data.Feature;
+import com.esri.arcgisruntime.data.FeatureQueryResult;
 import com.esri.arcgisruntime.data.FeatureTable;
 import com.esri.arcgisruntime.data.Field;
+import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
 import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.GeometryType;
 import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.io.RequestConfiguration;
 import com.esri.arcgisruntime.layers.ArcGISMapImageLayer;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
 import com.esri.arcgisruntime.layers.FeatureLayer;
@@ -50,6 +53,7 @@ import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.portal.Portal;
 import com.esri.arcgisruntime.security.UserCredential;
+import com.example.activity.esriApiTest;
 import com.example.hnTest.R;
 import com.example.hnTest.Util;
 import com.lisa.esri.manager.Selection;
@@ -494,6 +498,63 @@ public class EsriMethod {
             }
         }
         return  Count;
+    }
+    
+    
+    
+    /**
+     * 根据输入内容请求服务查询
+     * @param f_caption 字段名
+     * @param value     字段值
+     */
+    public void initSearchByField(final Context context, final MapView mapView, String f_caption, final String value) {
+        //// TODO: 2017/10/8
+        /// 根据输入内容请求服务查询
+    
+    
+        // create feature layer with its service feature table
+        // create the service feature table
+        ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(context.getResources().getString(R.string.world_census_service)+"/2");
+        // create the feature layer using the service feature table
+        FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
+        
+        
+        
+        // create objects required to do a selection with a query
+        QueryParameters query = new QueryParameters();
+        //make search case insensitive
+        query.setWhereClause("upper("+f_caption+") LIKE '%" + value + "%'");
+    
+        // call select features
+        final ListenableFuture<FeatureQueryResult> future = serviceFeatureTable.queryFeaturesAsync(query);
+        // add done loading listener to fire when the selection returns
+        future.addDoneListener(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // call get on the future to get the result
+                    FeatureQueryResult result = future.get();
+                    
+                    // check there are some results
+                    if (result.iterator().hasNext()) {
+                        
+                        // get the extend of the first feature in the result to zoom to
+                        Feature feature = result.iterator().next();
+                        Envelope envelope = feature.getGeometry().getExtent();
+                        mapView.setViewpointGeometryAsync(envelope, 200);
+                        
+                        //Select the feature
+//                        mFeaturelayer.selectFeature(feature);
+                        
+                    } else {
+                        Toast.makeText(context, "没有满足条件的地区" + value, Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(context, "Feature search failed for: " + value + ". Error=" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(context.getResources().getString(R.string.app_name), "Feature search failed for: " + value + ". Error=" + e.getMessage());
+                }
+            }
+        });
     }
 
 
