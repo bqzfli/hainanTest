@@ -121,7 +121,7 @@ public class Util {
      * @param info      提示信息
      */
     public static void showMessage(Context context,String info){
-        Toast.makeText(context,info,Toast.LENGTH_SHORT).show();
+        Toast.makeText(context,info,Toast.LENGTH_LONG).show();
     }
 
     /**

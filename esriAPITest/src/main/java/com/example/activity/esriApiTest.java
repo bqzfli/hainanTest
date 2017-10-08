@@ -139,7 +139,8 @@ public class esriApiTest extends AppCompatActivity
         String value = "4";
         edit.setText(value);
         edit.setSelection(value.length());
-        mSearchView.setQueryHint("输入查找对象的“F_CAPTION”");
+        final String strQueryField = getResources().getString(R.string.query_field);
+        mSearchView.setQueryHint("输入查找对象的“"+strQueryField+"”");
     
         final LinearLayout search_edit_frame = (LinearLayout) mSearchView.findViewById(R.id.search_edit_frame);
         search_edit_frame.setClickable(true);
@@ -167,8 +168,7 @@ public class esriApiTest extends AppCompatActivity
                     mSearchView.clearFocus();
                     search_edit_frame.setPressed(false);
                     String value = v.getText().toString();
-                    //TODO 对所有数据进行查找，通过"F_CAPTION"字段进行查找
-                    mEsriMethod.initSearchByField(esriApiTest.this,mMapView,"NAME", value);
+                    mEsriMethod.initSearchByField(esriApiTest.this,mMapView,strQueryField, value);
                     return true;
                 }
                 return false;

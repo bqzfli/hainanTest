@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">My Application</string>
     <string name="str_news_feed">News feed</string>
+    <!--<string name="query_field">STATE_NAME</string>-->
+    <string name="query_field">typdamage</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -10,6 +12,8 @@
     <string name="island">海南岛陆域生态保护红线</string>
     <string name="sea">海洋生态保护红线区</string>
 
-    <string name="search_by_screenlocation">正在努力搜索点击位置相关的目标搜索，\n响应时间依赖于服务器效率与网络环境，\n请耐心等待！</string>
+    <string name="search_by_screenlocation">正在努力搜索点击位置相关的目标，\n响应时间依赖于服务器效率与网络环境，\n请耐心等待！</string>
+
+    <string name="search_by_field">正在努力搜索满足条件的目标，\n响应时间依赖于服务器效率与网络环境，\n请耐心等待！</string>
 
 </resources>

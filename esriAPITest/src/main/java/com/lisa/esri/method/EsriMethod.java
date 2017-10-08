@@ -31,6 +31,7 @@ import com.esri.arcgisruntime.data.ServiceFeatureTable;
 import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.GeometryType;
+import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.io.RequestConfiguration;
 import com.esri.arcgisruntime.layers.ArcGISMapImageLayer;
@@ -53,7 +54,6 @@ import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.portal.Portal;
 import com.esri.arcgisruntime.security.UserCredential;
-import com.example.activity.esriApiTest;
 import com.example.hnTest.R;
 import com.example.hnTest.Util;
 import com.lisa.esri.manager.Selection;
@@ -63,6 +63,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -70,6 +71,8 @@ import java.util.concurrent.ExecutionException;
 
 import spinner.ItemData;
 import spinner.SpinnerAdapter;
+
+import static com.esri.arcgisruntime.mapping.Viewpoint.Type.CENTER_AND_SCALE;
 
 /**
  * Created by lisa on 2017/10/3.
@@ -394,13 +397,75 @@ public class EsriMethod {
         });
     }
 
+    /**
+     * 查询在范围内或与范围相交的要素
+     * @param context
+     * @param mapView       地图控件
+     * @param layer         查询图层
+     * @param geo           查询范围
+     *
+     */
+    private void searchInMapByScreenLocation(final Context context, final MapView mapView, final FeatureLayer layer, Geometry geo) {
+
+        //设置查询条件
+        QueryParameters query = new QueryParameters();
+        //设置查询范围
+        query.setGeometry(geo);
+        //查询方式为相交
+        query.setSpatialRelationship(QueryParameters.SpatialRelationship.INTERSECTS);
+        // call select features
+        final ListenableFuture<FeatureQueryResult> future = layer.selectFeaturesAsync(query, FeatureLayer.SelectionMode.NEW);
+        // add done loading listener to fire when the selection returns
+        future.addDoneListener(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //call get on the future to get the result
+                    FeatureQueryResult result = future.get();
+
+                    // create an Iterator
+                    Iterator<Feature> iterator = result.iterator();
+                    List<Field> fields = result.getFields();
+                    Feature feature = null;
+                    int countMax = 0;
+
+                    while (iterator.hasNext()) {
+
+                        // get the extend of the first feature in the result to zoom to
+                        feature = iterator.next();
+                        Envelope envelope = feature.getGeometry().getExtent();
+
+                        //// TODO: 2017/10/8 显示结果
+                        processGeoFromeFeature(feature,mapView);
+                        countMax += processRecordFromFeature(context,feature,layer);
+                        countMax += processRecordFromFeature(context,feature,fields,layer);
+                        //Select the feature
+//                        mFeaturelayer.selectFeature(feature);
+                    }
+
+                    //mapView.setViewpointGeometryAsync(envelope, 200);
+                    //显示查找结果
+                    Util.showMessage(context, "选中目标个数：" + countMax);
+                } catch (Exception e) {
+                    Util.dealWithException(context,e);
+                    Log.e(context.getResources().getString(R.string.app_name), e.getMessage());
+                }
+                Util.dismissProgressDialog();
+            }
+        });
+    }
 
 
     /**
      * 通过屏幕点击位置，在地图中查找的对应信息
+     * @param context
+     * @param mapView       地图控件
+     * @param layer         查询图层
+     * @param screenPoint   屏幕点击点
+     * @param tolerance     容错距离；单位：像素；不能大于100
      *
      */
-    private void searchInMapByScreenLocation(final Context context, final MapView mapView, final Layer layer, android.graphics.Point screenPoint) {
+    private void searchInMapByScreenLocation(final Context context, final MapView mapView, final Layer layer, android.graphics.Point screenPoint,int tolerance) {
         //清空历史选中结果
         Selection.SearchResultFromOperationLayer.clear();
         if(layer!=null){
@@ -410,7 +475,7 @@ public class EsriMethod {
             //单图层查找
             // call identifyLayerAsync, specifying the layer to identify, the screen location, tolerance, types to return, and
             // maximum results
-            final ListenableFuture<IdentifyLayerResult> identifyFuture = mapView.identifyLayerAsync(layer, screenPoint, 20, false, 25);
+            final ListenableFuture<IdentifyLayerResult> identifyFuture = mapView.identifyLayerAsync(layer, screenPoint, tolerance, false, 25);
 
             // add a listener to the future
             identifyFuture.addDoneListener(new Runnable() {
@@ -435,7 +500,7 @@ public class EsriMethod {
             });
         }else{
             //全部图层查找
-            final ListenableFuture<List<IdentifyLayerResult>> identifyFutures = mapView.identifyLayersAsync(screenPoint, 20, false,25);
+            final ListenableFuture<List<IdentifyLayerResult>> identifyFutures = mapView.identifyLayersAsync(screenPoint, tolerance, false,25);
             identifyFutures.addDoneListener(new Runnable() {
                 @Override
                 public void run() {
@@ -493,7 +558,7 @@ public class EsriMethod {
                 if (identifiedElement instanceof Feature) {
                     Feature identifiedFeature = (Feature) identifiedElement;
                     // Use feature as required, for example access attributes or geometry, select, build a table, etc...
-                    Count +=processIdentifyFeatureResult(context,identifiedFeature, identifyLayerResult.getLayerContent());
+                    Count += processIdentifyFeatureResult(context,identifiedFeature, identifyLayerResult.getLayerContent());
                 }
             }
         }
@@ -507,26 +572,31 @@ public class EsriMethod {
      * @param f_caption 字段名
      * @param value     字段值
      */
-    public void initSearchByField(final Context context, final MapView mapView, String f_caption, final String value) {
-        //// TODO: 2017/10/8
-        /// 根据输入内容请求服务查询
-    
-    
+    public void initSearchByField(final Context context, final MapView mapView, final String f_caption, final String value) {
+
+        // show progressDialog
+        Util.showProgressDialog(context,context.getResources().getString(R.string.search_by_field));
+
+        //清空历史选中结果
+        Selection.SearchResultFromOperationLayer.clear();
+
         // create feature layer with its service feature table
         // create the service feature table
-        ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(context.getResources().getString(R.string.world_census_service)+"/2");
+        String url = context.getResources().getString(R.string.sample6_states_url);
+        ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(url);
         // create the feature layer using the service feature table
-        FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
-        
+        final FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
         
         
         // create objects required to do a selection with a query
         QueryParameters query = new QueryParameters();
         //make search case insensitive
-        query.setWhereClause("upper("+f_caption+") LIKE '%" + value + "%'");
+        String strQuery = "upper("+f_caption+") LIKE '%" + value + "%'";
+        query.setWhereClause(strQuery);
+        query.setReturnGeometry(true);
     
         // call select features
-        final ListenableFuture<FeatureQueryResult> future = serviceFeatureTable.queryFeaturesAsync(query);
+        final ListenableFuture<FeatureQueryResult> future =  mFeatureLayer.getFeatureTable().queryFeaturesAsync(query);/*serviceFeatureTable.queryFeaturesAsync(query);*/
         // add done loading listener to fire when the selection returns
         future.addDoneListener(new Runnable() {
             @Override
@@ -534,25 +604,32 @@ public class EsriMethod {
                 try {
                     // call get on the future to get the result
                     FeatureQueryResult result = future.get();
-                    
+                    int countMax = 0;
+                    Iterator<Feature> results = result.iterator();
+                    List<Field> fields = result.getFields();
                     // check there are some results
-                    if (result.iterator().hasNext()) {
+                    while (results.hasNext()) {
                         
                         // get the extend of the first feature in the result to zoom to
-                        Feature feature = result.iterator().next();
+                        Feature feature = results.next();
                         Envelope envelope = feature.getGeometry().getExtent();
-                        mapView.setViewpointGeometryAsync(envelope, 200);
-                        
+
+                        //// TODO: 2017/10/8 显示结果
+                        processGeoFromeFeature(feature,mapView);
+                        countMax += processRecordFromFeature(context,feature,mFeatureLayer);
+                        countMax += processRecordFromFeature(context,feature,fields,mFeatureLayer);
                         //Select the feature
 //                        mFeaturelayer.selectFeature(feature);
-                        
-                    } else {
-                        Toast.makeText(context, "没有满足条件的地区" + value, Toast.LENGTH_SHORT).show();
                     }
+
+                    //mapView.setViewpointGeometryAsync(envelope, 200);
+                    //显示查找结果
+                    Util.showMessage(context, "选中目标个数：" + countMax);
                 } catch (Exception e) {
                     Toast.makeText(context, "Feature search failed for: " + value + ". Error=" + e.getMessage(), Toast.LENGTH_SHORT).show();
                     Log.e(context.getResources().getString(R.string.app_name), "Feature search failed for: " + value + ". Error=" + e.getMessage());
                 }
+                Util.dismissProgressDialog();
             }
         });
     }
@@ -576,8 +653,22 @@ public class EsriMethod {
                 clearGraphicOverlay(mapView);
                 // show progressDialog
                 Util.showProgressDialog(context,context.getResources().getString(R.string.search_by_screenlocation));
-                // start searching
-                searchInMapByScreenLocation(context,mapView,layer,screenPoint);
+
+                // -------------- 点击位置查找 --------------
+                /*int toleranceMap = 5000;
+                int tolerancePixel = Math.round(toleranceMap/Math.round(mapView.getUnitsPerDensityIndependentPixel()));
+                tolerancePixel = tolerancePixel>100?99:tolerancePixel;//tolerancePixel不能大于100
+                searchInMapByScreenLocation(context,mapView,layer,screenPoint,tolerancePixel);*/
+
+                // -------------- 范围查找 ------------------
+                // 屏幕点
+                Point clickPoint = mMapView.screenToLocation(screenPoint);
+                // 将容错范围转换为地图坐标，此处为“米”
+                double mapTolerance = 50;
+                // 创建一个查询范围
+                Envelope envelope = new Envelope(clickPoint.getX() - mapTolerance, clickPoint.getY() - mapTolerance, clickPoint.getX() + mapTolerance, clickPoint.getY() + mapTolerance, mapView.getSpatialReference());
+                // 根据空间范围查询
+                searchInMapByScreenLocation(context,mapView,mFeatureLayer,envelope);
                 return true;
             }
         });
@@ -681,14 +772,11 @@ public class EsriMethod {
     }
 
     /**
-     * 处理查询到的Feature的内容
-     * @param context
-     * @param identifiedElement             查询到的对象
-     * @param layerContent                  所属图层
-     * @param mapView                       地图控件
+     * 处理查找到的矢量的显示
+     * @param identifiedElement     矢量要素
+     * @param mapView               地图控件
      */
-    public int processIdentifyImageLayerResult(Context context,Feature identifiedElement, LayerContent layerContent, MapView mapView) {
-        int countMax = 0;
+    private Geometry processGeoFromeFeature(Feature identifiedElement,MapView mapView){
         Geometry geo =  identifiedElement.getGeometry();
         Graphic graphic = null;
         if(geo.getGeometryType() == GeometryType.POLYGON){
@@ -702,6 +790,50 @@ public class EsriMethod {
             graphic = new Graphic(geo,Util.getSymbolDefaultPictureMapker(mapView.getContext()));
             mapView.getGraphicsOverlays().get(Util.IndexGrighicOverlayPoint).getGraphics().add(graphic);
         }
+        return geo;
+    }
+
+    /**
+     * 处理查找到结果的属性信息
+     * @param context
+     * @param identifiedElement 查询结果
+     * @param layerContent      所属图层
+     *
+     * @return                  1：成功处理一条；0：失败
+     */
+    private int processRecordFromFeature(Context context,Feature identifiedElement, List<Field> fields,LayerContent layerContent){
+        Geometry geo = identifiedElement.getGeometry();
+        try {
+            Map<String, Object> attributes = identifiedElement.getAttributes();
+            Map<String, Object> result = new HashMap<String, Object>();
+            String layerName = layerContent.getName();
+            String geoJson = geo.toJson();
+            if (layerName != null && geoJson != null && attributes != null) {
+                result.put(Util.LAYERNAME, layerName);
+                for(Field field:fields){
+                    result.put(field.getName(),attributes.get(field.getName()));
+                }
+                Selection.SearchResultFromOperationLayer.add(result);
+            }else{
+                return 0;
+            }
+        }catch (Exception ex){
+            Util.showMessage(context,ex.getMessage());
+            return 0;
+        }
+        return 1;
+    }
+
+
+    /**
+     * 处理查找到结果的属性信息
+     * @param context
+     * @param identifiedElement 查询结果
+     * @param layerContent      所属图层
+     * @return                  1：成功处理一条；0：失败
+     */
+    private int processRecordFromFeature(Context context,Feature identifiedElement, LayerContent layerContent){
+        Geometry geo = identifiedElement.getGeometry();
         try {
             Map<String, Object> attributes = identifiedElement.getAttributes();
             String layerName = layerContent.getName();
@@ -710,11 +842,27 @@ public class EsriMethod {
                 attributes.put(Util.LAYERNAME, layerName);
                 attributes.put(Util.GEOJSON, geoJson);
                 Selection.SearchResultFromOperationLayer.add(attributes);
-                countMax = 1;
+            }else{
+                return 0;
             }
         }catch (Exception ex){
             Util.showMessage(context,ex.getMessage());
+            return 0;
         }
+        return 1;
+    }
+
+
+    /**
+     * 处理查询到的Feature的内容
+     * @param context
+     * @param identifiedElement             查询到的对象
+     * @param layerContent                  所属图层
+     * @param mapView                       地图控件
+     */
+    public int processIdentifyImageLayerResult(Context context,Feature identifiedElement, LayerContent layerContent, MapView mapView) {
+        Geometry geo = processGeoFromeFeature(identifiedElement,mapView);
+        int countMax = processRecordFromFeature(context,identifiedElement,layerContent);
         return countMax;
     }
 

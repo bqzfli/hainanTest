@@ -54,6 +54,8 @@
     ESRI reserves the right to change or remove this service at any time and without notice.  -->
     <string name="world_census_service">http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer</string>
 
+    <!--States -->
+    <string name="sample6_states_url">https://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/2</string>
 
 
     <!-- Sample Strings -->
@@ -68,6 +70,7 @@
 
     <!-- HaiNan Map Service-->
     <string name="yizhanglantu_0_service">http://218.77.183.85:6080/arcgis/rest/services/yizhanglantu/MapServer/0</string>
+
 
     <!-- ArcGIS Online URL -->
     <string name="portal_arcgisonline">"https://your-org.arcgis.com/"</string>
