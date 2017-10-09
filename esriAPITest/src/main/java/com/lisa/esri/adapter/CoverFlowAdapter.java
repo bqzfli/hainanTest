@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 查询结果的显示
  * Created by WANT on 2017/10/8.
  */
 public class CoverFlowAdapter extends BaseAdapter {
@@ -71,9 +72,9 @@ public class CoverFlowAdapter extends BaseAdapter {
         Map<String,Object> result = mData.get(position);
 
         Iterator<String> keys = result.keySet().iterator();
-        String strId = (String) result.get(Util.OBJECTID);
-        String strLayerName = (String) result.get(Util.LAYERNAME);
-        String strResult ="";
+        String strId = "编号："+(String) result.get(Util.OBJECTID);
+        String strLayerName = "图层：" + (String) result.get(Util.LAYERNAME);
+        String strResult = "";
         while (keys.hasNext()){
             String key = keys.next();
             if(result.get(key)!=null

@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
@@ -29,13 +30,19 @@ import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.FeatureQueryResult;
 import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.geometry.Envelope;
+import com.esri.arcgisruntime.geometry.Geometry;
+import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.example.hnTest.R;
+import com.example.hnTest.Util;
 import com.lisa.esri.adapter.CoverFlowAdapter;
 import com.lisa.esri.manager.Selection;
 import com.lisa.esri.method.EsriMethod;
+import com.lisa.esri.method.EsriMethod.OnTouchMapEvent;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
 
 import it.moondroid.coverflow.components.ui.containers.FeatureCoverFlow;
 
@@ -105,7 +112,13 @@ public class esriApiTest extends AppCompatActivity
         mFeatureCoverFlow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mFeatureCoverFlow.setVisibility(View.GONE);
+                //提取选中要素
+                Map<String,Object> result = Selection.SearchResultFromOperationLayer.get(position);
+                String strGeo = (String)result.get(Util.GEOJSON);
+                Geometry geo = Geometry.fromJson(strGeo);
+                Envelope envelope = geo.getExtent();
+                final ListenableFuture<Boolean> viewpointSetFuture = mMapView.setViewpointAsync(new Viewpoint(envelope), 2);
+                /*mFeatureCoverFlow.setVisibility(View.GONE);*/
             }
         });
 
@@ -122,7 +135,12 @@ public class esriApiTest extends AppCompatActivity
         mEsriMethod.initOperatinalLayer(this,mMapView);
 
         //设置地图identify事件
-        mEsriMethod.initIdentifyOperation(this,mMapView,mEsriMethod.getOperationalLayers()/*mFeatureLayer*/);
+        mEsriMethod.initIdentifyOperation(this,mMapView,mEsriMethod.getOperationalLayers()/*mFeatureLayer*/,new OnTouchMapEvent(){
+            @Override
+            public void refreshViewOnStartSearch(MotionEvent e) {
+                mFeatureCoverFlow.setVisibility(View.GONE);
+            }
+        });
 
         //设置显示当前位置，第一次加载界面时就显示
         //initLocationDisplay(mMapView);
@@ -184,7 +202,9 @@ public class esriApiTest extends AppCompatActivity
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
              /*判断是否是“GO”键*/
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                /*隐藏软键盘*/
+                    //查询结果列表关闭
+                    mFeatureCoverFlow.setVisibility(View.GONE);
+                    /*隐藏软键盘*/
                     mSearchView.clearFocus();
                     search_edit_frame.setPressed(false);
                     String value = v.getText().toString();
@@ -257,6 +277,7 @@ public class esriApiTest extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
 
 
 }

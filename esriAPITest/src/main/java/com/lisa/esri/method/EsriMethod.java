@@ -639,20 +639,31 @@ public class EsriMethod {
      * 设置地图的点选查询方法
      * @param context
      * @param mapView   地图控件
+     * @param layer     查询图层，可以为null。
+     *                  当为null时对地图中所有操作图层进行查询；
+     *                  不为null时对layer进行查询
+     * @param touchMapEvent     查询是View层要做的事情
      */
-    public void initIdentifyOperation(final Context context,final MapView mapView, final Layer layer){
+    public void initIdentifyOperation(final Context context, final MapView mapView, final Layer layer, final OnTouchMapEvent touchMapEvent){
         mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(context,mapView){
 
             // override the onSingleTapConfirmed gesture to handle a single tap on the MapView
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
 
+
                 // get the screen point where user tapped
                 android.graphics.Point screenPoint = new android.graphics.Point((int) e.getX(), (int) e.getY());
+
                 // clear the result of searching in history
                 clearGraphicOverlay(mapView);
                 // show progressDialog
                 Util.showProgressDialog(context,context.getResources().getString(R.string.search_by_screenlocation));
+
+
+                if(touchMapEvent!=null){
+                    touchMapEvent.refreshViewOnStartSearch(e);
+                }
 
                 // -------------- 点击位置查找 --------------
                 int toleranceMap = 5000;
@@ -810,6 +821,7 @@ public class EsriMethod {
             String geoJson = geo.toJson();
             if (layerName != null && geoJson != null && attributes != null) {
                 result.put(Util.LAYERNAME, layerName);
+                result.put(Util.GEOJSON,geoJson);
                 for(Field field:fields){
                     result.put(field.getName(),attributes.get(field.getName()));
                 }
@@ -866,4 +878,15 @@ public class EsriMethod {
         return countMax;
     }
 
+
+    /**
+     * 用户触摸地图时触发的事件
+     */
+    public interface OnTouchMapEvent{
+        /**
+         * 开始搜索时触发的事件
+         * @param e      用户手指触摸地图控件时需要实现的方法
+         */
+        void refreshViewOnStartSearch(MotionEvent e);
+    }
 }
