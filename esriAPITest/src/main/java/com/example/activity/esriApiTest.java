@@ -118,7 +118,7 @@ public class esriApiTest extends AppCompatActivity
                 Geometry geo = Geometry.fromJson(strGeo);
                 Envelope envelope = geo.getExtent();
                 final ListenableFuture<Boolean> viewpointSetFuture = mMapView.setViewpointAsync(new Viewpoint(envelope), 2);
-                /*mFeatureCoverFlow.setVisibility(View.GONE);*/
+                mFeatureCoverFlow.setVisibility(View.GONE);
             }
         });
 
@@ -126,7 +126,7 @@ public class esriApiTest extends AppCompatActivity
         //天地图底图
         //mEsriMethod.initMap(mMapView,getResources().getString(R.string..world_TDT_service));
         //世界影像底图
-        mEsriMethod.iniBaseMap(mMapView,getResources().getString(R.string.world_imagery_service));
+        mEsriMethod.iniBaseMap(this,mMapView,getResources().getString(R.string.world_imagery_service));
 
         //设置GraphicOverlay
         mEsriMethod.initGraphicOverlay(mMapView);

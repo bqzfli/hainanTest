@@ -33,6 +33,7 @@ import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.GeometryType;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.io.RequestConfiguration;
 import com.esri.arcgisruntime.layers.ArcGISMapImageLayer;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
@@ -86,6 +87,14 @@ public class EsriMethod {
 
     ArcGISMapImageLayer mOperationalLayers = null;
     FeatureLayer mFeatureLayer = null;
+    /**
+     * 海洋保护区
+     */
+    ArcGISMapImageLayer mLayerDisplayProtectionZoneSea = null;
+    /**
+     * 陆地保护区
+     */
+    ArcGISMapImageLayer mLayerDisplayProtectionZoneLand = null;
 
     /**
      * 设置Portal验证
@@ -140,10 +149,11 @@ public class EsriMethod {
 
     /**
      * 初始化MapView的基础底图
+     * @param context
      * @param mapView   地图控件
      * @param urlMapServer  地图服务地址
      */
-    public void iniBaseMap(MapView mapView,String urlMapServer){
+    public void iniBaseMap(Context context,MapView mapView,String urlMapServer){
         /*create map based on default map
         ArcGISMap map = new ArcGISMap(Basemap.Type.TOPOGRAPHIC, 34.056295, -117.195800, 16);*/
 
@@ -155,6 +165,14 @@ public class EsriMethod {
         ArcGISMap map = new ArcGISMap(basemap);
         //set the map to be displayed in this view
         mapView.setMap(map);
+
+        //海南项目显示图层
+        mLayerDisplayProtectionZoneSea = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_display_protection_sea));
+        mLayerDisplayProtectionZoneSea.setOpacity(1);
+        mapView.getMap().getBasemap().getBaseLayers().add(mLayerDisplayProtectionZoneSea);
+        mLayerDisplayProtectionZoneLand = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_display_protection_land));
+        mLayerDisplayProtectionZoneLand.setOpacity(1);
+        mapView.getMap().getBasemap().getBaseLayers().add(mLayerDisplayProtectionZoneLand);
     }
 
 
@@ -168,7 +186,10 @@ public class EsriMethod {
         //This service presents various population statistics from Census 2000,
         // including total population, population density, racial counts, and more.
         // The map service presents statistics at the state, county, block group, and block point levels.
-        mOperationalLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.world_census_service));
+        //mOperationalLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.world_census_service));
+
+        //海南项目查找图层
+        mOperationalLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_search_protection));
         mOperationalLayers.setOpacity(1);
         mapView.getMap().getOperationalLayers().add(mOperationalLayers);
 
@@ -704,9 +725,9 @@ public class EsriMethod {
      */
     public void changeViewPoint(final MapView mapView){
         //海南项目范围
-        //Envelope env = new Envelope(108.62333711241558,18.159500862569853,111.04646712614706,20.16107656389238, SpatialReferences.getWgs84());
+        Envelope env = new Envelope(108.62333711241558,18.159500862569853,111.04646712614706,20.16107656389238, SpatialReferences.getWgs84());
         //USA Census 2000
-        Envelope env = new Envelope( -179.6191629086413,17.881242000418013, -65.2442340001989,71.40623536706858, SpatialReference.create(4269));
+        //Envelope env = new Envelope( -179.6191629086413,17.881242000418013, -65.2442340001989,71.40623536706858, SpatialReference.create(4269));
 
         //设置地图的初始范围
 //        mMap.setInitialViewpoint(new Viewpoint(env));
