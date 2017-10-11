@@ -59,7 +59,7 @@ public class Util {
     public static SimpleFillSymbol SymbolFill =
             new SimpleFillSymbol(
                     SimpleFillSymbol.Style.DIAGONAL_CROSS,
-                    Color.argb(255, 255, 255, 0),
+                    Color.argb(255, 0, 0, 128),
                     SymbolOutline);
 
     /**

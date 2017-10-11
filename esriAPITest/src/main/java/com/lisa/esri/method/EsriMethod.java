@@ -216,7 +216,7 @@ public class EsriMethod {
 
         // 海南项目查找图层
         mIdentifyLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_identify_protection));
-        mIdentifyLayers.setOpacity(0);
+        mIdentifyLayers.setOpacity(1);
         mapView.getMap().getOperationalLayers().add(mIdentifyLayers);
 
 
