@@ -135,7 +135,7 @@ public class esriApiTest extends AppCompatActivity
         mEsriMethod.initOperatinalLayer(this,mMapView);
 
         //设置地图identify事件
-        mEsriMethod.initIdentifyOperation(this,mMapView,mEsriMethod.getOperationalLayers()/*mFeatureLayer*/,new OnTouchMapEvent(){
+        mEsriMethod.initIdentifyOperation(this,mMapView,mEsriMethod.getIdentifyLayers()/*mFeatureLayer*/,new OnTouchMapEvent(){
             @Override
             public void refreshViewOnStartSearch(MotionEvent e) {
                 mFeatureCoverFlow.setVisibility(View.GONE);
@@ -208,7 +208,7 @@ public class esriApiTest extends AppCompatActivity
                     mSearchView.clearFocus();
                     search_edit_frame.setPressed(false);
                     String value = v.getText().toString();
-                    mEsriMethod.initSearchByField(esriApiTest.this,mMapView,strQueryField, value);
+                    mEsriMethod.initQuaryByField(esriApiTest.this,mMapView,strQueryField, value);
                     return true;
                 }
                 return false;

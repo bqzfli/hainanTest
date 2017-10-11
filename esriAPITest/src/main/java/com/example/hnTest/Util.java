@@ -50,16 +50,16 @@ public class Util {
     public static SimpleLineSymbol SymbolOutline =
             new SimpleLineSymbol(
                     SimpleLineSymbol.Style.SOLID,
-                    Color.argb(255, 0, 0, 128), 1.0f);
+                    Color.argb(255, 0, 0, 128), 4.0f);
     /**
-     * color：green
-     * line：OutlineSymbol
-     * style：solid
+     * color：grenn
+     * line：blue、1、solod
+     * style：DIAGONAL_CROSS
      */
     public static SimpleFillSymbol SymbolFill =
             new SimpleFillSymbol(
-                    SimpleFillSymbol.Style.SOLID,
-                    Color.argb(64, 255, 255, 0),
+                    SimpleFillSymbol.Style.DIAGONAL_CROSS,
+                    Color.argb(255, 255, 255, 0),
                     SymbolOutline);
 
     /**

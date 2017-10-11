@@ -2,7 +2,8 @@
     <string name="app_name">My Application</string>
     <string name="str_news_feed">News feed</string>
     <!--<string name="query_field">STATE_NAME</string>-->
-    <string name="query_field">typdamage</string>
+    <!--<string name="query_field">typdamage</string>-->
+    <string name="query_field">NAME</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

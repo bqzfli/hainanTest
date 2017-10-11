@@ -63,9 +63,8 @@
 
     <it.moondroid.coverflow.components.ui.containers.FeatureCoverFlow
         android:id="@+id/coverflow"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="0dp"
         android:background="#8222"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

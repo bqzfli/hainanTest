@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.LicenseInfo;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
+import com.esri.arcgisruntime.data.ArcGISFeature;
 import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.FeatureQueryResult;
 import com.esri.arcgisruntime.data.FeatureTable;
@@ -36,6 +37,8 @@ import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.io.RequestConfiguration;
 import com.esri.arcgisruntime.layers.ArcGISMapImageLayer;
+import com.esri.arcgisruntime.layers.ArcGISMapImageSublayer;
+import com.esri.arcgisruntime.layers.ArcGISSublayer;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.layers.Layer;
@@ -85,16 +88,29 @@ public class EsriMethod {
     private String[] reqPermissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission
             .ACCESS_COARSE_LOCATION};
 
-    ArcGISMapImageLayer mOperationalLayers = null;
-    FeatureLayer mFeatureLayer = null;
     /**
-     * 海洋保护区
+     * Identify图层
      */
-    ArcGISMapImageLayer mLayerDisplayProtectionZoneSea = null;
+    ArcGISMapImageLayer mIdentifyLayers = null;
     /**
-     * 陆地保护区
+     * 属性查找图层
      */
-    ArcGISMapImageLayer mLayerDisplayProtectionZoneLand = null;
+    FeatureLayer mFeatureLayerQuaryField = null;
+
+    /**
+     * 海洋保护区——显示、空间查找
+     */
+    FeatureLayer mFeatureLayerProtectionZoneSea = null;
+    /**
+     * 陆地保护区——空间查找
+     */
+    FeatureLayer mFeatureLayerProtectionZoneLand = null;
+
+    /**
+     * 陆地保护区——显示
+     */
+    ArcGISMapImageLayer mDisplayLayerProtectionZoneLand = null;
+
 
     /**
      * 设置Portal验证
@@ -165,14 +181,6 @@ public class EsriMethod {
         ArcGISMap map = new ArcGISMap(basemap);
         //set the map to be displayed in this view
         mapView.setMap(map);
-
-        //海南项目显示图层
-        mLayerDisplayProtectionZoneSea = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_display_protection_sea));
-        mLayerDisplayProtectionZoneSea.setOpacity(1);
-        mapView.getMap().getBasemap().getBaseLayers().add(mLayerDisplayProtectionZoneSea);
-        mLayerDisplayProtectionZoneLand = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_display_protection_land));
-        mLayerDisplayProtectionZoneLand.setOpacity(1);
-        mapView.getMap().getBasemap().getBaseLayers().add(mLayerDisplayProtectionZoneLand);
     }
 
 
@@ -182,27 +190,47 @@ public class EsriMethod {
      * @param mapView   地图控件
      */
     public void initOperatinalLayer(Context context,final MapView mapView){
+
+        //--------海南项目显示、空间查找图层-----------
+        //
+        mDisplayLayerProtectionZoneLand = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_protection_land));
+        mapView.getMap().getBasemap().getBaseLayers().add(mDisplayLayerProtectionZoneLand);
+
+        ServiceFeatureTable serviceFeatureProtectionZoneLand = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_land));
+        mFeatureLayerProtectionZoneLand = new FeatureLayer(serviceFeatureProtectionZoneLand);
+        mFeatureLayerProtectionZoneLand.setOpacity(1);
+        mapView.getMap().getBasemap().getBaseLayers().add(mFeatureLayerProtectionZoneLand);
+
+        ServiceFeatureTable serviceFeatureProtectionZoneSea = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_sea));
+        mFeatureLayerProtectionZoneSea = new FeatureLayer(serviceFeatureProtectionZoneSea);
+        mFeatureLayerProtectionZoneSea.setOpacity(1);
+        mapView.getMap().getBasemap().getBaseLayers().add(mFeatureLayerProtectionZoneSea);
+        //----------------------------------------------------------------------------------------
+
+        // 设置identify的图层
         //USA Census 2000
         //This service presents various population statistics from Census 2000,
         // including total population, population density, racial counts, and more.
         // The map service presents statistics at the state, county, block group, and block point levels.
-        //mOperationalLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.world_census_service));
+        //mIdentifyLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.world_census_service));
 
-        //海南项目查找图层
-        mOperationalLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_search_protection));
-        mOperationalLayers.setOpacity(1);
-        mapView.getMap().getOperationalLayers().add(mOperationalLayers);
+        // 海南项目查找图层
+        mIdentifyLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_identify_protection));
+        mIdentifyLayers.setOpacity(0);
+        mapView.getMap().getOperationalLayers().add(mIdentifyLayers);
 
-        //identify操作单一图层
+
+        //属性查找图层
         // create the service feature table
-        ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(context.getResources().getString(R.string.sample6_service_url));
+        //ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(context.getResources().getString(R.string.sample6_service_url));
+        ServiceFeatureTable serviceQuaryFieldTable = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_quaryfield_address));
         // create the feature layer using the service feature table
-        mFeatureLayer  = new FeatureLayer(serviceFeatureTable);
-        mFeatureLayer.setSelectionColor(Color.YELLOW);
-        mFeatureLayer.setSelectionWidth(10);
+        mFeatureLayerQuaryField  = new FeatureLayer(serviceQuaryFieldTable);
+        mFeatureLayerQuaryField.setSelectionColor(Color.YELLOW);
+        mFeatureLayerQuaryField.setSelectionWidth(10);
+        mFeatureLayerQuaryField.setOpacity(0);
         // add the layer to the map
-        mapView.getMap().getOperationalLayers().add(mFeatureLayer);
-
+        mapView.getMap().getOperationalLayers().add(mFeatureLayerQuaryField);
 
         /*// create feature layer with its service feature table
         // create the service feature table
@@ -217,8 +245,8 @@ public class EsriMethod {
      * 获取操作数据图层
      * @return
      */
-    public ArcGISMapImageLayer getOperationalLayers(){
-        return mOperationalLayers;
+    public ArcGISMapImageLayer getIdentifyLayers(){
+        return mIdentifyLayers;
     }
 
     /**
@@ -364,7 +392,7 @@ public class EsriMethod {
         ArrayList<ItemData> list = new ArrayList<>();
         list.add(new ItemData("关闭GPS", R.drawable.locationdisplaydisabled));
         list.add(new ItemData("开启GPS", R.drawable.locationdisplayon));
-        list.add(new ItemData("设备位置剧中", R.drawable.locationdisplayrecenter));
+        list.add(new ItemData("设备位置居中", R.drawable.locationdisplayrecenter));
         list.add(new ItemData("汽车导航", R.drawable.locationdisplaynavigation));
         list.add(new ItemData("步行导航", R.drawable.locationdisplayheading));
 
@@ -590,34 +618,33 @@ public class EsriMethod {
     
     /**
      * 根据输入内容请求服务查询
+     * @param context
+     * @param mapView   地图控件
      * @param f_caption 字段名
      * @param value     字段值
      */
-    public void initSearchByField(final Context context, final MapView mapView, final String f_caption, final String value) {
+    public void initQuaryByField(final Context context, final MapView mapView, final String f_caption, final String value) {
 
         // show progressDialog
         Util.showProgressDialog(context,context.getResources().getString(R.string.search_by_field));
 
-        //清空历史选中结果
-        Selection.SearchResultFromOperationLayer.clear();
+        // clear the result of searching in history
+        clearGraphicOverlay(mapView);
 
-        // create feature layer with its service feature table
-        // create the service feature table
-        String url = context.getResources().getString(R.string.sample6_states_url);
-        ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(url);
-        // create the feature layer using the service feature table
-        final FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
-        
+        // clear the result of searching in history
+        Selection.SearchResultFromOperationLayer.clear();
         
         // create objects required to do a selection with a query
         QueryParameters query = new QueryParameters();
         //make search case insensitive
-        String strQuery = "upper("+f_caption+") LIKE '%" + value + "%'";
+        //String strQuery = "upper("+f_caption+") LIKE '%" + value + "%'";
+        String strQuery = f_caption+" LIKE '%" + value + "%'";
         query.setWhereClause(strQuery);
         query.setReturnGeometry(true);
     
         // call select features
-        final ListenableFuture<FeatureQueryResult> future =  mFeatureLayer.getFeatureTable().queryFeaturesAsync(query);/*serviceFeatureTable.queryFeaturesAsync(query);*/
+        final ListenableFuture<FeatureQueryResult> future =  getFeatureLayerQuaryField().getFeatureTable().queryFeaturesAsync(query);/*serviceFeatureTable.queryFeaturesAsync(query);*/
+
         // add done loading listener to fire when the selection returns
         future.addDoneListener(new Runnable() {
             @Override
@@ -637,8 +664,8 @@ public class EsriMethod {
 
                         //// TODO: 2017/10/8 显示结果
                         processGeoFromeFeature(feature,mapView);
-                        countMax += processRecordFromFeature(context,feature,mFeatureLayer);
-                        countMax += processRecordFromFeature(context,feature,fields,mFeatureLayer);
+                        countMax += processRecordFromFeature(context,feature,getFeatureLayerQuaryField());
+                        countMax += processRecordFromFeature(context,feature,fields,getFeatureLayerQuaryField());
                         //Select the feature
 //                        mFeaturelayer.selectFeature(feature);
                     }
@@ -671,16 +698,15 @@ public class EsriMethod {
             // override the onSingleTapConfirmed gesture to handle a single tap on the MapView
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
-
-
                 // get the screen point where user tapped
                 android.graphics.Point screenPoint = new android.graphics.Point((int) e.getX(), (int) e.getY());
 
                 // clear the result of searching in history
                 clearGraphicOverlay(mapView);
+                // clear the list of searching in history
+                Selection.SearchResultFromOperationLayer.clear();
                 // show progressDialog
                 Util.showProgressDialog(context,context.getResources().getString(R.string.search_by_screenlocation));
-
 
                 if(touchMapEvent!=null){
                     touchMapEvent.refreshViewOnStartSearch(e);
@@ -909,5 +935,13 @@ public class EsriMethod {
          * @param e      用户手指触摸地图控件时需要实现的方法
          */
         void refreshViewOnStartSearch(MotionEvent e);
+    }
+
+    /**
+     * 获取属性查找的Featurelayer
+     * @return
+     */
+    public FeatureLayer getFeatureLayerQuaryField(){
+        return  mFeatureLayerQuaryField;
     }
 }
