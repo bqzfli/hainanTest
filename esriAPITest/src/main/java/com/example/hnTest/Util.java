@@ -24,9 +24,13 @@ public class Util {
      */
     public static String KEY_LAYERNAME = "LAYERNAME";
     /**
-     * 矢量信息
+     * 矢量信息：字符串形式
      */
     public static String KEY_GEOJSON = "GOEJSON";
+    /**
+     * 矢量信息：实体类型
+     */
+    public static String KEY_GEO = "GOE";
 
     /**
      * 调查对象主键

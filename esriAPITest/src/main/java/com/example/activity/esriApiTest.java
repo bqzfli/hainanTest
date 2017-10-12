@@ -114,8 +114,9 @@ public class esriApiTest extends AppCompatActivity
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //提取选中要素
                 Map<String,Object> result = Selection.SearchResultFromOperationLayer.get(position);
-                String strGeo = (String)result.get(Util.KEY_GEOJSON);
-                Geometry geo = Geometry.fromJson(strGeo);
+                /*String strGeo = (String)result.get(Util.KEY_GEOJSON);
+                Geometry geo = Geometry.fromJson(strGeo);*/
+                Geometry geo = (Geometry)result.get(Util.KEY_GEO);
                 Envelope envelope = geo.getExtent();
                 final ListenableFuture<Boolean> viewpointSetFuture = mMapView.setViewpointAsync(new Viewpoint(envelope), 2);
                 mFeatureCoverFlow.setVisibility(View.GONE);
