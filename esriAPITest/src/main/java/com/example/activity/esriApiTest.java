@@ -114,7 +114,7 @@ public class esriApiTest extends AppCompatActivity
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //提取选中要素
                 Map<String,Object> result = Selection.SearchResultFromOperationLayer.get(position);
-                String strGeo = (String)result.get(Util.GEOJSON);
+                String strGeo = (String)result.get(Util.KEY_GEOJSON);
                 Geometry geo = Geometry.fromJson(strGeo);
                 Envelope envelope = geo.getExtent();
                 final ListenableFuture<Boolean> viewpointSetFuture = mMapView.setViewpointAsync(new Viewpoint(envelope), 2);
@@ -134,13 +134,62 @@ public class esriApiTest extends AppCompatActivity
         //设置操作图层
         mEsriMethod.initOperatinalLayer(this,mMapView);
 
-        //设置地图identify事件
-        mEsriMethod.initIdentifyOperation(this,mMapView,mEsriMethod.getIdentifyLayers()/*mFeatureLayer*/,new OnTouchMapEvent(){
+        //设置空间查询方法
+        mEsriMethod.initSelectByGeometry(this,mMapView,new OnTouchMapEvent(){
             @Override
             public void refreshViewOnStartSearch(MotionEvent e) {
+                //显示查询滚动条
+                Util.showProgressDialog(esriApiTest.this,getResources().getString(R.string.search_by_screenlocation));
+                //关闭结果清单
                 mFeatureCoverFlow.setVisibility(View.GONE);
             }
+
+            @Override
+            public void refreshViewOnSearchSuccess(String info, int count) {
+                if(mEsriMethod.isSelectByGeometryComplete()) {
+                    //如果所有图层均完成搜索
+                    Util.showMessage(esriApiTest.this, info);
+                    Log.i("Identify", "查询成功，查到结果数量：" + count + "条");
+                    Util.dismissProgressDialog();
+                }
+            }
+
+            @Override
+            public void refreshViewOnSearchFailed(String info, Exception ex) {
+                Util.showMessage(esriApiTest.this,info+":\n"+ex.getMessage());
+                Log.w("Identify",ex.getMessage());
+                if(mEsriMethod.isSelectByGeometryComplete()) {
+                    //如果所有图层均完成搜索，关闭查询进度条
+                    Util.dismissProgressDialog();
+                }
+            }
         });
+
+        //设置地图identify事件
+        /*mEsriMethod.initIdentifyOperation(this,mMapView,new OnTouchMapEvent(){
+            @Override
+            public void refreshViewOnStartSearch(MotionEvent e) {
+                //显示查询滚动条
+                Util.showProgressDialog(esriApiTest.this,getResources().getString(R.string.search_by_screenlocation));
+                //关闭结果清单
+                mFeatureCoverFlow.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void refreshViewOnSearchSuccess(String info, int count) {
+                Util.showMessage(esriApiTest.this,info);
+                Log.i("Identify","查询成功，查到结果数量："+count+"条");
+                Util.dismissProgressDialog();
+            }
+
+            @Override
+            public void refreshViewOnSearchFailed(String info, Exception ex) {
+                Util.showMessage(esriApiTest.this,info+":\n"+ex.getMessage());
+                Log.w("Identify",ex.getMessage());
+                //关闭查询进度条
+                Util.dismissProgressDialog();
+            }
+        });*/
 
         //设置显示当前位置，第一次加载界面时就显示
         //initLocationDisplay(mMapView);
@@ -208,7 +257,25 @@ public class esriApiTest extends AppCompatActivity
                     mSearchView.clearFocus();
                     search_edit_frame.setPressed(false);
                     String value = v.getText().toString();
-                    mEsriMethod.initQuaryByField(esriApiTest.this,mMapView,strQueryField, value);
+                    mEsriMethod.initQuaryByField(esriApiTest.this,mMapView,strQueryField, value,new OnTouchMapEvent(){
+                        @Override
+                        public void refreshViewOnStartSearch(MotionEvent e) {
+                            // show progressDialog
+                            Util.showProgressDialog(esriApiTest.this,getResources().getString(R.string.search_by_field));
+                        }
+
+                        @Override
+                        public void refreshViewOnSearchSuccess(String info, int count) {
+                            Util.dismissProgressDialog();
+                            Util.showMessage(esriApiTest.this,info);
+                        }
+
+                        @Override
+                        public void refreshViewOnSearchFailed(String info, Exception ex) {
+                            Util.dismissProgressDialog();
+                            Util.showMessage(esriApiTest.this,info);
+                        }
+                    });
                     return true;
                 }
                 return false;

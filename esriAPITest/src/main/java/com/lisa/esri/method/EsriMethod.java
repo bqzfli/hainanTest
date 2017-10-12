@@ -65,6 +65,7 @@ import com.lisa.esri.manager.Selection;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -98,19 +99,42 @@ public class EsriMethod {
     FeatureLayer mFeatureLayerQuaryField = null;
 
     /**
-     * 海洋保护区——显示、空间查找
+     * 海洋保护区——显示
      */
-    FeatureLayer mFeatureLayerProtectionZoneSea = null;
-    /**
-     * 陆地保护区——空间查找
-     */
-    FeatureLayer mFeatureLayerProtectionZoneLand = null;
+    ArcGISMapImageLayer mDisplayLayerProtectionZoneSea = null;
 
     /**
      * 陆地保护区——显示
      */
     ArcGISMapImageLayer mDisplayLayerProtectionZoneLand = null;
 
+    /**
+     * 保护区空间查找图层
+     */
+    FeatureLayer[]  mFeatureLayerDisplays = null;
+
+
+    /**
+     * 完成空间查询的图层个数
+     */
+    public int CountCompleteSelect = 0;
+
+    /**
+     * 空间查询目标的个数
+     */
+    public int CountFeatureSelect = 0;
+
+
+    /**
+     * 空间查找是否完成
+     * @return
+     */
+    public boolean isSelectByGeometryComplete(){
+        if(CountCompleteSelect==mFeatureLayerDisplays.length){
+            return true;
+        }
+        return  false;
+    }
 
     /**
      * 设置Portal验证
@@ -181,6 +205,13 @@ public class EsriMethod {
         ArcGISMap map = new ArcGISMap(basemap);
         //set the map to be displayed in this view
         mapView.setMap(map);
+
+        //--------海南项目显示图层-----------
+        //
+        mDisplayLayerProtectionZoneLand = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_protection_land));
+        mapView.getMap().getBasemap().getBaseLayers().add(mDisplayLayerProtectionZoneLand);
+        mDisplayLayerProtectionZoneSea = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_protection_sea));
+        mapView.getMap().getBasemap().getBaseLayers().add(mDisplayLayerProtectionZoneSea);
     }
 
 
@@ -191,20 +222,17 @@ public class EsriMethod {
      */
     public void initOperatinalLayer(Context context,final MapView mapView){
 
-        //--------海南项目显示、空间查找图层-----------
-        //
-        mDisplayLayerProtectionZoneLand = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_protection_land));
-        mapView.getMap().getBasemap().getBaseLayers().add(mDisplayLayerProtectionZoneLand);
+        //-------海南项目空间查询图层
+        ServiceFeatureTable tableProtectionZoneLand = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_land));
+        FeatureLayer protectionZoneLand = new FeatureLayer(tableProtectionZoneLand);
+        protectionZoneLand.setOpacity(1);
+        mapView.getMap().getBasemap().getBaseLayers().add(protectionZoneLand);
 
-        ServiceFeatureTable serviceFeatureProtectionZoneLand = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_land));
-        mFeatureLayerProtectionZoneLand = new FeatureLayer(serviceFeatureProtectionZoneLand);
-        mFeatureLayerProtectionZoneLand.setOpacity(1);
-        mapView.getMap().getBasemap().getBaseLayers().add(mFeatureLayerProtectionZoneLand);
-
-        ServiceFeatureTable serviceFeatureProtectionZoneSea = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_sea));
-        mFeatureLayerProtectionZoneSea = new FeatureLayer(serviceFeatureProtectionZoneSea);
-        mFeatureLayerProtectionZoneSea.setOpacity(1);
-        mapView.getMap().getBasemap().getBaseLayers().add(mFeatureLayerProtectionZoneSea);
+        ServiceFeatureTable tableProtectionZoneSea = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_sea));
+        FeatureLayer protectionZoneSea = new FeatureLayer(tableProtectionZoneSea);
+        protectionZoneSea.setOpacity(1);
+        mapView.getMap().getBasemap().getBaseLayers().add(protectionZoneSea);
+        mFeatureLayerDisplays = new FeatureLayer[]{protectionZoneLand,protectionZoneSea};
         //----------------------------------------------------------------------------------------
 
         // 设置identify的图层
@@ -449,64 +477,73 @@ public class EsriMethod {
     /**
      * 查询在范围内或与范围相交的要素
      * @param context
-     * @param mapView       地图控件
-     * @param layer         查询图层
-     * @param geo           查询范围
-     *
+     * @param mapView           地图控件
+     * @param layers            查询图层
+     * @param geo               查询范围
+     * @param touchMapEvent     查询后View要做的
      */
-    private void searchInMapByScreenLocation(final Context context, final MapView mapView, final FeatureLayer layer, Geometry geo) {
+    private void searchInLayersByGeometry(final Context context, final MapView mapView, final FeatureLayer[] layers, Geometry geo,final OnTouchMapEvent touchMapEvent) {
 
+        //重置已查询图层的个数
+        CountCompleteSelect = 0;
+        //重置空间查询的结果个数
+        CountFeatureSelect = 0;
         //设置查询条件
         QueryParameters query = new QueryParameters();
         //设置查询范围
         query.setGeometry(geo);
         //查询方式为相交
-        query.setSpatialRelationship(QueryParameters.SpatialRelationship.INTERSECTS);
+        query.setSpatialRelationship(Util.SelectRelationship);
         // call select features
-        final ListenableFuture<FeatureQueryResult> future = layer.selectFeaturesAsync(query, FeatureLayer.SelectionMode.NEW);
-        // add done loading listener to fire when the selection returns
-        future.addDoneListener(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    //call get on the future to get the result
-                    FeatureQueryResult result = future.get();
+        for(final FeatureLayer layer:layers) {
+            //清除此图层历史选中结果
+            layer.clearSelection();
+            final ListenableFuture<FeatureQueryResult> future = layer.selectFeaturesAsync(query, FeatureLayer.SelectionMode.NEW);
+            // add done loading listener to fire when the selection returns
+            future.addDoneListener(new Runnable() {
+                @Override
+                public void run() {
+                    CountCompleteSelect+=1;
+                    try {
+                        //call get on the future to get the result
+                        FeatureQueryResult result = future.get();
 
-                    // create an Iterator
-                    Iterator<Feature> iterator = result.iterator();
-                    List<Field> fields = result.getFields();
-                    Feature feature = null;
-                    int countMax = 0;
+                        // create an Iterator
+                        Iterator<Feature> iterator = result.iterator();
+                        List<Field> fields = result.getFields();
+                        Feature feature = null;
 
-                    while (iterator.hasNext()) {
+                        while (iterator.hasNext()) {
+                            // get the extend of the first feature in the result to zoom to
+                            feature = iterator.next();
+                            Envelope envelope = feature.getGeometry().getExtent();
 
-                        // get the extend of the first feature in the result to zoom to
-                        feature = iterator.next();
-                        Envelope envelope = feature.getGeometry().getExtent();
-
-                        //// TODO: 2017/10/8 显示结果
-                        processGeoFromeFeature(feature,mapView);
-                        countMax += processRecordFromFeature(context,feature,layer);
-                        countMax += processRecordFromFeature(context,feature,fields,layer);
-                        //Select the feature
+                            //// TODO: 2017/10/8 显示结果
+                            processGeoFromeFeature(feature, mapView);
+                            processRecordFromFeature(context, feature, layer);
+                            CountFeatureSelect += processRecordFromFeature(context, feature, fields, layer);
+                            //Select the feature
 //                        mFeaturelayer.selectFeature(feature);
+                        }
+                        // View显示查找结果
+                        if(touchMapEvent!=null){
+                            touchMapEvent.refreshViewOnSearchSuccess("选中目标个数：" + CountFeatureSelect,CountFeatureSelect);
+                        }
+                    } catch(InterruptedException | ExecutionException ex){
+                        // must deal with checked exceptions thrown from the async identify operation
+                        // View显示失败信息
+                        if(touchMapEvent!=null){
+                            touchMapEvent.refreshViewOnSearchFailed("查询失败：", ex );
+                        }
                     }
-
-                    //mapView.setViewpointGeometryAsync(envelope, 200);
-                    //显示查找结果
-                    Util.showMessage(context, "选中目标个数：" + countMax);
-                } catch (Exception e) {
-                    Util.dealWithException(context,e);
-                    Log.e(context.getResources().getString(R.string.app_name), e.getMessage());
                 }
-                Util.dismissProgressDialog();
-            }
-        });
+            });
+        }
     }
 
 
     /**
-     * 通过屏幕点击位置，在地图中查找的对应信息
+     * 通过地图的Identify查找对应的位置
      * @param context
      * @param mapView       地图控件
      * @param layer         查询图层
@@ -514,7 +551,7 @@ public class EsriMethod {
      * @param tolerance     容错距离；单位：像素；不能大于100
      *
      */
-    private void searchInMapByScreenLocation(final Context context, final MapView mapView, final Layer layer, android.graphics.Point screenPoint,int tolerance) {
+    private void searchInMapByIdentify(final Context context, final MapView mapView, final Layer layer, android.graphics.Point screenPoint,int tolerance,final OnTouchMapEvent touchMapEvent) {
         //清空历史选中结果
         Selection.SearchResultFromOperationLayer.clear();
         if(layer!=null){
@@ -522,8 +559,7 @@ public class EsriMethod {
                 ((FeatureLayer)layer).clearSelection();
             }
             //单图层查找
-            // call identifyLayerAsync, specifying the layer to identify, the screen location, tolerance, types to return, and
-            // maximum results
+            // call identifyLayerAsync, specifying the layer to identify, the screen location, tolerance, types to return, and maximum results
             final ListenableFuture<IdentifyLayerResult> identifyFuture = mapView.identifyLayerAsync(layer, screenPoint, tolerance, false, 25);
 
             // add a listener to the future
@@ -536,14 +572,18 @@ public class EsriMethod {
                         IdentifyLayerResult identifyLayerResult = identifyFuture.get();
                         // 处理查找的目标
                         Count = prosessResultFromSearchLayers(context,mapView,identifyLayerResult);
-                        //显示查找结果
-                        Util.showMessage(context, "选中目标个数：" + Count);
+
+                        // View显示查找结果
+                        if(touchMapEvent!=null){
+                            touchMapEvent.refreshViewOnSearchSuccess("选中目标个数：" + Count,Count);
+                        }
                     } catch(InterruptedException | ExecutionException ex){
                         // must deal with checked exceptions thrown from the async identify operation
-                        Util.dealWithException(context, ex);
+                        // View显示失败信息
+                        if(touchMapEvent!=null){
+                            touchMapEvent.refreshViewOnSearchFailed("查询失败：" + Count,ex);
+                        }
                     }
-                    //关闭查询进度条
-                    Util.dismissProgressDialog();
 
                 }
             });
@@ -563,14 +603,17 @@ public class EsriMethod {
                             Count += prosessResultFromSearchLayers(context,mapView,identifyLayerResult);
                         }
 
-                        if(Count>0) {
-                            Util.showMessage(context, "选中目标个数：" + Count);
+                        // View显示查找结果
+                        if(touchMapEvent!=null){
+                            touchMapEvent.refreshViewOnSearchSuccess("选中目标个数：" + Count,Count);
                         }
                     } catch (InterruptedException | ExecutionException ex) {
-                        Util.dealWithException(context,ex); // must deal with exceptions thrown from the async identify operation
+                        // must deal with exceptions thrown from the async identify operation
+                        // View显示失败信息
+                        if(touchMapEvent!=null){
+                            touchMapEvent.refreshViewOnSearchFailed("查询失败：", ex);
+                        }
                     }
-                    //关闭查询进度条
-                    Util.dismissProgressDialog();
                 }
             });
         }
@@ -613,27 +656,30 @@ public class EsriMethod {
         }
         return  Count;
     }
-    
-    
-    
+
+
+
     /**
      * 根据输入内容请求服务查询
      * @param context
      * @param mapView   地图控件
      * @param f_caption 字段名
      * @param value     字段值
+     * @param viewEvent 界面更新
+     *
      */
-    public void initQuaryByField(final Context context, final MapView mapView, final String f_caption, final String value) {
-
-        // show progressDialog
-        Util.showProgressDialog(context,context.getResources().getString(R.string.search_by_field));
+    public void initQuaryByField(final Context context, final MapView mapView, final String f_caption, final String value,final OnTouchMapEvent viewEvent) {
+        //refresh view
+        if(viewEvent!=null){
+            viewEvent.refreshViewOnStartSearch(null);
+        }
 
         // clear the result of searching in history
         clearGraphicOverlay(mapView);
 
         // clear the result of searching in history
         Selection.SearchResultFromOperationLayer.clear();
-        
+
         // create objects required to do a selection with a query
         QueryParameters query = new QueryParameters();
         //make search case insensitive
@@ -641,7 +687,7 @@ public class EsriMethod {
         String strQuery = f_caption+" LIKE '%" + value + "%'";
         query.setWhereClause(strQuery);
         query.setReturnGeometry(true);
-    
+
         // call select features
         final ListenableFuture<FeatureQueryResult> future =  getFeatureLayerQuaryField().getFeatureTable().queryFeaturesAsync(query);/*serviceFeatureTable.queryFeaturesAsync(query);*/
 
@@ -657,7 +703,7 @@ public class EsriMethod {
                     List<Field> fields = result.getFields();
                     // check there are some results
                     while (results.hasNext()) {
-                        
+
                         // get the extend of the first feature in the result to zoom to
                         Feature feature = results.next();
                         Envelope envelope = feature.getGeometry().getExtent();
@@ -670,12 +716,17 @@ public class EsriMethod {
 //                        mFeaturelayer.selectFeature(feature);
                     }
 
-                    //mapView.setViewpointGeometryAsync(envelope, 200);
-                    //显示查找结果
-                    Util.showMessage(context, "选中目标个数：" + countMax);
+                    String info = "选中目标个数：" + countMax;
+                    Log.i("属性查找——成功",info);
+                    if(viewEvent!=null){
+                        viewEvent.refreshViewOnSearchSuccess(info,countMax);
+                    }
                 } catch (Exception e) {
-                    Toast.makeText(context, "Feature search failed for: " + value + ". Error=" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(context.getResources().getString(R.string.app_name), "Feature search failed for: " + value + ". Error=" + e.getMessage());
+                    String info = "Feature search failed for: " + value + ". Error=" + e.getMessage();
+                    Log.e("属性查找——失败", info);
+                    if(viewEvent!=null){
+                        viewEvent.refreshViewOnSearchFailed(info,e);
+                    }
                 }
                 Util.dismissProgressDialog();
             }
@@ -686,13 +737,10 @@ public class EsriMethod {
     /**
      * 设置地图的点选查询方法
      * @param context
-     * @param mapView   地图控件
-     * @param layer     查询图层，可以为null。
-     *                  当为null时对地图中所有操作图层进行查询；
-     *                  不为null时对layer进行查询
+     * @param mapView           地图控件
      * @param touchMapEvent     查询是View层要做的事情
      */
-    public void initIdentifyOperation(final Context context, final MapView mapView, final Layer layer, final OnTouchMapEvent touchMapEvent){
+    public void initIdentifyOperation(final Context context, final MapView mapView,final OnTouchMapEvent touchMapEvent){
         mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(context,mapView){
 
             // override the onSingleTapConfirmed gesture to handle a single tap on the MapView
@@ -700,33 +748,70 @@ public class EsriMethod {
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 // get the screen point where user tapped
                 android.graphics.Point screenPoint = new android.graphics.Point((int) e.getX(), (int) e.getY());
-
                 // clear the result of searching in history
                 clearGraphicOverlay(mapView);
                 // clear the list of searching in history
                 Selection.SearchResultFromOperationLayer.clear();
-                // show progressDialog
-                Util.showProgressDialog(context,context.getResources().getString(R.string.search_by_screenlocation));
-
+                // refresh the View
                 if(touchMapEvent!=null){
                     touchMapEvent.refreshViewOnStartSearch(e);
                 }
 
                 // -------------- 点击位置查找 --------------
                 int toleranceMap = 5000;
-                int tolerancePixel = Math.round(toleranceMap/Math.round(mapView.getUnitsPerDensityIndependentPixel()));
-                tolerancePixel = 25;//tolerancePixel>100?99:tolerancePixel;//tolerancePixel不能大于100
-                searchInMapByScreenLocation(context,mapView,layer,screenPoint,tolerancePixel);
+                int tolerancePixel = 1;//Math.round(toleranceMap/Math.round(mapView.getUnitsPerDensityIndependentPixel()));
+                //tolerancePixel = 25;//tolerancePixel>100?99:tolerancePixel;//tolerancePixel不能大于100
+                searchInMapByIdentify(context,mapView,getIdentifyLayers(),screenPoint,tolerancePixel,touchMapEvent);
+                return true;
+            }
+        });
+    }
 
-                // -------------- 范围查找 ------------------
-               /* // 屏幕点
+    /**
+     * 设置地图的点选查询方法
+     * @param context
+     * @param mapView           地图控件
+     *                           当为null时对地图中所有操作图层进行查询；
+     *                           不为null时对layer进行查询
+     * @param touchMapEvent     查询是View层要做的事情
+     */
+    public void initSelectByGeometry(final Context context, final MapView mapView,final OnTouchMapEvent touchMapEvent){
+        mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(context,mapView){
+
+            // override the onSingleTapConfirmed gesture to handle a single tap on the MapView
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                // clear the result of searching in history
+                clearGraphicOverlay(mapView);
+                // clear the list of searching in history
+                Selection.SearchResultFromOperationLayer.clear();
+
+                // get the screen point where user tapped
+                android.graphics.Point screenPoint = new android.graphics.Point((int) e.getX(), (int) e.getY());
+                // get the map location where user tapped
                 Point clickPoint = mMapView.screenToLocation(screenPoint);
-                // 将容错范围转换为地图坐标，此处为“米”
-                double mapTolerance = 50;
-                // 创建一个查询范围
-                Envelope envelope = new Envelope(clickPoint.getX() - mapTolerance, clickPoint.getY() - mapTolerance, clickPoint.getX() + mapTolerance, clickPoint.getY() + mapTolerance, mapView.getSpatialReference());
-                // 根据空间范围查询
-                searchInMapByScreenLocation(context,mapView,mFeatureLayer,envelope);*/
+                // create select envelope by tolerance setting by users
+                Envelope envelope = new Envelope(
+                        clickPoint.getX() - Util.MapSelectDistance,
+                        clickPoint.getY() - Util.MapSelectDistance,
+                        clickPoint.getX() + Util.MapSelectDistance,
+                        clickPoint.getY() + Util.MapSelectDistance,
+                        mapView.getSpatialReference());
+
+                //refresh the view
+                if(touchMapEvent!=null){
+                    touchMapEvent.refreshViewOnStartSearch(e);
+                }
+                if(mFeatureLayerDisplays!=null&&mFeatureLayerDisplays.length>0) {
+                    //
+                    searchInLayersByGeometry(context, mapView, mFeatureLayerDisplays, envelope, touchMapEvent);
+                }else{
+                    if(touchMapEvent!=null){
+                        String info = "没有可供查询的图层";
+                        Exception ex = new Exception();
+                        touchMapEvent.refreshViewOnSearchFailed(info,ex);
+                    }
+                }
                 return true;
             }
         });
@@ -856,7 +941,6 @@ public class EsriMethod {
      * @param context
      * @param identifiedElement 查询结果
      * @param layerContent      所属图层
-     *
      * @return                  1：成功处理一条；0：失败
      */
     private int processRecordFromFeature(Context context,Feature identifiedElement, List<Field> fields,LayerContent layerContent){
@@ -867,8 +951,8 @@ public class EsriMethod {
             String layerName = layerContent.getName();
             String geoJson = geo.toJson();
             if (layerName != null && geoJson != null && attributes != null) {
-                result.put(Util.LAYERNAME, layerName);
-                result.put(Util.GEOJSON,geoJson);
+                result.put(Util.KEY_LAYERNAME, layerName);
+                result.put(Util.KEY_GEOJSON,geoJson);
                 for(Field field:fields){
                     result.put(field.getName(),attributes.get(field.getName()));
                 }
@@ -898,8 +982,8 @@ public class EsriMethod {
             String layerName = layerContent.getName();
             String geoJson = geo.toJson();
             if (layerName != null && geoJson != null && attributes != null) {
-                attributes.put(Util.LAYERNAME, layerName);
-                attributes.put(Util.GEOJSON, geoJson);
+                attributes.put(Util.KEY_LAYERNAME, layerName);
+                attributes.put(Util.KEY_GEOJSON, geoJson);
                 Selection.SearchResultFromOperationLayer.add(attributes);
             }else{
                 return 0;
@@ -935,6 +1019,21 @@ public class EsriMethod {
          * @param e      用户手指触摸地图控件时需要实现的方法
          */
         void refreshViewOnStartSearch(MotionEvent e);
+
+        /**
+         * 搜索成功时触发的事件
+         *
+         * @param info      弹窗内可显示的内容
+         * @param count     查询记录数量；
+         */
+        void refreshViewOnSearchSuccess(String info,int count);
+
+        /**
+         * 搜索失败时触发的事件
+         * @param info      弹窗内可显示的内容
+         * @param ex        异常
+         */
+        void refreshViewOnSearchFailed(String info,Exception ex);
     }
 
     /**

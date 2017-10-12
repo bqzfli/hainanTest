@@ -72,15 +72,15 @@ public class CoverFlowAdapter extends BaseAdapter {
         Map<String,Object> result = mData.get(position);
 
         Iterator<String> keys = result.keySet().iterator();
-        String strId = "编号："+(String) result.get(Util.OBJECTID);
-        String strLayerName = "图层：" + (String) result.get(Util.LAYERNAME);
+        String strId = "编号："+(String) result.get(Util.KEY_OBJECTID);
+        String strLayerName = "图层：" + (String) result.get(Util.KEY_LAYERNAME);
         String strResult = "";
         while (keys.hasNext()){
             String key = keys.next();
             if(result.get(key)!=null
-                    &&!key.equalsIgnoreCase(Util.OBJECTID)
-                    &&!key.equalsIgnoreCase(Util.GEOJSON)
-                    &&!key.equalsIgnoreCase(Util.LAYERNAME)) {
+                    &&!key.equalsIgnoreCase(Util.KEY_OBJECTID)
+                    &&!key.equalsIgnoreCase(Util.KEY_GEOJSON)
+                    &&!key.equalsIgnoreCase(Util.KEY_LAYERNAME)) {
                 String value = String.valueOf(result.get(key));
                 strResult += key + "：'" + value + "'\n";
             }

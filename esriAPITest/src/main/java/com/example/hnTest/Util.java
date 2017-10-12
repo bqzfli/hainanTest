@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
+import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
@@ -21,16 +22,28 @@ public class Util {
     /**
      * 图层名称关键字
      */
-    public static String LAYERNAME = "LAYERNAME";
+    public static String KEY_LAYERNAME = "LAYERNAME";
     /**
      * 矢量信息
      */
-    public static String GEOJSON = "GOEJSON";
+    public static String KEY_GEOJSON = "GOEJSON";
 
     /**
      * 调查对象主键
      */
-    public static String OBJECTID = "OBJECTID";
+    public static String KEY_OBJECTID = "OBJECTID";
+
+    /**
+     * 地图容差距离，用户可在系统设置里配置
+     * 单位：米
+     */
+    public static double MapSelectDistance = 5000;
+
+    /**
+     * 空间查询方式，
+     * APP研发中设置
+     */
+    public static QueryParameters.SpatialRelationship SelectRelationship = QueryParameters.SpatialRelationship.INTERSECTS;
 
     /**
      * 查询用进度条

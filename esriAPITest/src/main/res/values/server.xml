@@ -69,18 +69,21 @@
 
     <!--地名属性查找图层-->
     <string name="service_layer_quaryfield_address">http://218.77.183.85:6080/arcgis/rest/services/tianditu/tiandituhainan/MapServer/0</string>
-
     <!--生态保护红线-查询、identify-->
     <string name="service_map_identify_protection">http://218.77.183.85:6080/arcgis/rest/services/yizhanglantu/MapServer</string>
 
-    <!--生态保护红线-显示、空间查找-海洋-->
-    <string name="service_layer_feature_protection_sea">http://218.77.183.85:6080/arcgis/rest/services/海洋生态保护红线区/MapServer/0</string>
 
+    <!--生态保护红线-空间查找-海洋-->
+    <string name="service_layer_feature_protection_sea" >http://218.77.183.85:6080/arcgis/rest/services/yizhanglantu/MapServer/1</string>
     <!--生态保护红线-空间查找-陆地-->
-    <string name="service_layer_feature_protection_land">http://218.77.183.85:6080/arcgis/rest/services/陆域生态保护红线/MapServer/0</string>
+    <string name="service_layer_feature_protection_land">http://218.77.183.85:6080/arcgis/rest/services/yizhanglantu/MapServer/0</string>
 
+
+    <!--生态保护红线-显示-海洋-->
+    <string name="service_map_protection_sea" >"http://218.77.183.85:6080/arcgis/rest/services/海洋生态保护红线区/MapServer"</string>
     <!--生态保护红线-显示-陆地-->
     <string name="service_map_protection_land">"http://218.77.183.85:6080/arcgis/rest/services/陆域生态保护红线/MapServer"</string>
+
 
     <!-- ArcGIS Online URL -->
     <string name="portal_arcgisonline">"https://your-org.arcgis.com/"</string>

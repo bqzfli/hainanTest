@@ -28,7 +28,7 @@ public class Selection {
                 Map<String,Object> result = SearchResultFromOperationLayer.get(i);
                 String strReuslt = "id:'"+String.valueOf(i)+"',";
                 strResult += strReuslt;
-                strResult += "Layer:'"+result.get(Util.LAYERNAME)+"',";
+                strResult += "Layer:'"+result.get(Util.KEY_LAYERNAME)+"',";
 
                 Iterator<String> keys = result.keySet().iterator();
                 int sizeKeys = result.size()>5?5:result.size();
