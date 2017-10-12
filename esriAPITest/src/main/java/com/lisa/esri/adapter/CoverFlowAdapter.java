@@ -79,6 +79,7 @@ public class CoverFlowAdapter extends BaseAdapter {
             String key = keys.next();
             if(result.get(key)!=null
                     &&!key.equalsIgnoreCase(Util.KEY_OBJECTID)
+                    &&!key.equalsIgnoreCase(Util.KEY_GEO)
                     &&!key.equalsIgnoreCase(Util.KEY_GEOJSON)
                     &&!key.equalsIgnoreCase(Util.KEY_LAYERNAME)) {
                 String value = String.valueOf(result.get(key));

@@ -236,12 +236,6 @@ public class EsriMethod {
         mFeatureLayerSelectByGeometry = new FeatureLayer[]{protectionZoneLand,protectionZoneSea};
         //----------------------------------------------------------------------------------------
 
-        // 设置identify的图层
-        //USA Census 2000
-        //This service presents various population statistics from Census 2000,
-        // including total population, population density, racial counts, and more.
-        // The map service presents statistics at the state, county, block group, and block point levels.
-        //mIdentifyLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.world_census_service));
 
         // 海南项目查找图层
         mIdentifyLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.service_map_identify_protection));
@@ -249,7 +243,14 @@ public class EsriMethod {
         mapView.getMap().getOperationalLayers().add(mIdentifyLayers);
 
 
-        //属性查找图层
+        // 设置identify的图层
+        //USA Census 2000
+        //This service presents various population statistics from Census 2000,
+        // including total population, population density, racial counts, and more.
+        // The map service presents statistics at the state, county, block group, and block point levels.
+        /*mIdentifyLayers = new ArcGISMapImageLayer(context.getResources().getString(R.string.world_census_service));*/
+
+        // 属性查找图层
         // create the service feature table
         //ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(context.getResources().getString(R.string.sample6_service_url));
         ServiceFeatureTable serviceQuaryFieldTable = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_quaryfield_address));
@@ -710,7 +711,7 @@ public class EsriMethod {
 
                         //// TODO: 2017/10/8 显示结果
                         processGeoFromeFeature(feature,mapView);
-                        countMax += processRecordFromFeature(context,feature,getFeatureLayerQuaryField());
+                        /*countMax += processRecordFromFeature(context,feature,getFeatureLayerQuaryField());*/
                         countMax += processRecordFromFeature(context,feature,fields,getFeatureLayerQuaryField());
                         //Select the feature
 //                        mFeaturelayer.selectFeature(feature);
@@ -957,10 +958,11 @@ public class EsriMethod {
             Map<String, Object> attributes = identifiedElement.getAttributes();
             Map<String, Object> result = new HashMap<String, Object>();
             String layerName = layerContent.getName();
-            String geoJson = geo.toJson();
-            if (layerName != null && geoJson != null && attributes != null) {
+            /*String geoJson = geo.toJson();*/
+            if (layerName != null &&/* geoJson != null*/ geo!=null&& attributes != null) {
                 result.put(Util.KEY_LAYERNAME, layerName);
-                result.put(Util.KEY_GEOJSON,geoJson);
+                /*result.put(Util.KEY_GEOJSON,geoJson);*/
+                result.put(Util.KEY_GEO,geo);
                 for(Field field:fields){
                     result.put(field.getName(),attributes.get(field.getName()));
                 }
@@ -988,10 +990,11 @@ public class EsriMethod {
         try {
             Map<String, Object> attributes = identifiedElement.getAttributes();
             String layerName = layerContent.getName();
-            String geoJson = geo.toJson();
-            if (layerName != null && geoJson != null && attributes != null) {
+            /*String geoJson = geo.toJson();*/
+            if (layerName != null &&/* geoJson != null*/geo!=null && attributes != null) {
                 attributes.put(Util.KEY_LAYERNAME, layerName);
-                attributes.put(Util.KEY_GEOJSON, geoJson);
+                /*attributes.put(Util.KEY_GEOJSON, geoJson);*/
+                attributes.put(Util.KEY_GEO,geo);
                 Selection.SearchResultFromOperationLayer.add(attributes);
             }else{
                 return 0;
