@@ -128,11 +128,11 @@ public class esriApiTest extends AppCompatActivity
         //世界影像底图
         mEsriMethod.iniBaseMap(this,mMapView,getResources().getString(R.string.world_imagery_service));
 
+        //设置操作图层
+        mEsriMethod.initLayerOperatinal(this,mMapView);
+
         //设置GraphicOverlay
         mEsriMethod.initGraphicOverlay(mMapView);
-
-        //设置操作图层
-        mEsriMethod.initOperatinalLayer(this,mMapView);
 
         //设置空间查询方法
         mEsriMethod.initSelectByGeometry(this,mMapView,new OnTouchMapEvent(){

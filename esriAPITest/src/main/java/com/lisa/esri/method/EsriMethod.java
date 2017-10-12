@@ -111,7 +111,7 @@ public class EsriMethod {
     /**
      * 保护区空间查找图层
      */
-    FeatureLayer[]  mFeatureLayerDisplays = null;
+    FeatureLayer[]  mFeatureLayerSelectByGeometry = null;
 
 
     /**
@@ -130,7 +130,7 @@ public class EsriMethod {
      * @return
      */
     public boolean isSelectByGeometryComplete(){
-        if(CountCompleteSelect==mFeatureLayerDisplays.length){
+        if(CountCompleteSelect==mFeatureLayerSelectByGeometry.length){
             return true;
         }
         return  false;
@@ -220,19 +220,20 @@ public class EsriMethod {
      * @param context
      * @param mapView   地图控件
      */
-    public void initOperatinalLayer(Context context,final MapView mapView){
+    public void initLayerOperatinal(Context context,final MapView mapView){
 
         //-------海南项目空间查询图层
-        ServiceFeatureTable tableProtectionZoneLand = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_land));
+       //todo 设置空间查询图层
+       ServiceFeatureTable tableProtectionZoneLand = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_land));
         FeatureLayer protectionZoneLand = new FeatureLayer(tableProtectionZoneLand);
-        protectionZoneLand.setOpacity(1);
+        protectionZoneLand.setOpacity(0);
         mapView.getMap().getBasemap().getBaseLayers().add(protectionZoneLand);
 
         ServiceFeatureTable tableProtectionZoneSea = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_sea));
         FeatureLayer protectionZoneSea = new FeatureLayer(tableProtectionZoneSea);
-        protectionZoneSea.setOpacity(1);
+        protectionZoneSea.setOpacity(0);
         mapView.getMap().getBasemap().getBaseLayers().add(protectionZoneSea);
-        mFeatureLayerDisplays = new FeatureLayer[]{protectionZoneLand,protectionZoneSea};
+        mFeatureLayerSelectByGeometry = new FeatureLayer[]{protectionZoneLand,protectionZoneSea};
         //----------------------------------------------------------------------------------------
 
         // 设置identify的图层
@@ -254,8 +255,8 @@ public class EsriMethod {
         ServiceFeatureTable serviceQuaryFieldTable = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_quaryfield_address));
         // create the feature layer using the service feature table
         mFeatureLayerQuaryField  = new FeatureLayer(serviceQuaryFieldTable);
-        mFeatureLayerQuaryField.setSelectionColor(Color.YELLOW);
-        mFeatureLayerQuaryField.setSelectionWidth(10);
+        /*mFeatureLayerQuaryField.setSelectionColor(Color.YELLOW);
+        mFeatureLayerQuaryField.setSelectionWidth(10);*/
         mFeatureLayerQuaryField.setOpacity(0);
         // add the layer to the map
         mapView.getMap().getOperationalLayers().add(mFeatureLayerQuaryField);
@@ -495,15 +496,14 @@ public class EsriMethod {
         //查询方式为相交
         query.setSpatialRelationship(Util.SelectRelationship);
         // call select features
-        for(final FeatureLayer layer:layers) {
-            //清除此图层历史选中结果
-            layer.clearSelection();
+        for(int i=0;i<layers.length;i++) {
+            final FeatureLayer layer = layers[i];
             final ListenableFuture<FeatureQueryResult> future = layer.selectFeaturesAsync(query, FeatureLayer.SelectionMode.NEW);
             // add done loading listener to fire when the selection returns
             future.addDoneListener(new Runnable() {
                 @Override
                 public void run() {
-                    CountCompleteSelect+=1;
+                    CountCompleteSelect += 1;
                     try {
                         //call get on the future to get the result
                         FeatureQueryResult result = future.get();
@@ -518,9 +518,9 @@ public class EsriMethod {
                             feature = iterator.next();
                             Envelope envelope = feature.getGeometry().getExtent();
 
-                            //// TODO: 2017/10/8 显示结果
+                            // TODO: 2017/10/8 显示结果
                             processGeoFromeFeature(feature, mapView);
-                            processRecordFromFeature(context, feature, layer);
+                            //CountFeatureSelect += processRecordFromFeature(context, feature, layer);
                             CountFeatureSelect += processRecordFromFeature(context, feature, fields, layer);
                             //Select the feature
 //                        mFeaturelayer.selectFeature(feature);
@@ -533,7 +533,7 @@ public class EsriMethod {
                         // must deal with checked exceptions thrown from the async identify operation
                         // View显示失败信息
                         if(touchMapEvent!=null){
-                            touchMapEvent.refreshViewOnSearchFailed("查询失败：", ex );
+                            touchMapEvent.refreshViewOnSearchFailed("查询失败：\n"+layer.getName(), ex );
                         }
                     }
                 }
@@ -776,6 +776,7 @@ public class EsriMethod {
      * @param touchMapEvent     查询是View层要做的事情
      */
     public void initSelectByGeometry(final Context context, final MapView mapView,final OnTouchMapEvent touchMapEvent){
+        //TODO 使用GPS位置，而不是屏幕点击位置
         mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(context,mapView){
 
             // override the onSingleTapConfirmed gesture to handle a single tap on the MapView
@@ -786,8 +787,15 @@ public class EsriMethod {
                 // clear the list of searching in history
                 Selection.SearchResultFromOperationLayer.clear();
 
+                // clear the selected history of each layer
+                for(FeatureLayer layer:mFeatureLayerSelectByGeometry){
+                    layer.clearSelection();
+                }
+
                 // get the screen point where user tapped
                 android.graphics.Point screenPoint = new android.graphics.Point((int) e.getX(), (int) e.getY());
+
+                //todo 输入点使用GPS获取的位置，注意转换为地图坐标
                 // get the map location where user tapped
                 Point clickPoint = mMapView.screenToLocation(screenPoint);
                 // create select envelope by tolerance setting by users
@@ -802,9 +810,9 @@ public class EsriMethod {
                 if(touchMapEvent!=null){
                     touchMapEvent.refreshViewOnStartSearch(e);
                 }
-                if(mFeatureLayerDisplays!=null&&mFeatureLayerDisplays.length>0) {
-                    //
-                    searchInLayersByGeometry(context, mapView, mFeatureLayerDisplays, envelope, touchMapEvent);
+                if(mFeatureLayerSelectByGeometry!=null&&mFeatureLayerSelectByGeometry.length>0) {
+                    //设置多图层查询
+                    searchInLayersByGeometry(context, mapView, mFeatureLayerSelectByGeometry, envelope, touchMapEvent);
                 }else{
                     if(touchMapEvent!=null){
                         String info = "没有可供查询的图层";
