@@ -127,7 +127,7 @@ public class esriApiTest extends AppCompatActivity
         //天地图底图
         //mEsriMethod.initMap(mMapView,getResources().getString(R.string..world_TDT_service));
         //世界影像底图
-        mEsriMethod.iniBaseMap(this,mMapView,getResources().getString(R.string.world_imagery_service));
+        mEsriMethod.iniBaseMap(this,mMapView);
 
         //设置操作图层
         mEsriMethod.initLayerOperatinal(this,mMapView);
