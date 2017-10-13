@@ -13,6 +13,8 @@ import com.esri.arcgisruntime.util.ListenableList;
 import com.example.hnTest.R;
 import com.example.hnTest.Util;
 
+import java.util.Arrays;
+
 /**
  * Created by WANT on 2017/10/13.
  */
@@ -88,13 +90,15 @@ public class EsriManager {
         ServiceFeatureTable tableProtectionZoneLand = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_land));
         FeatureLayer protectionZoneLand = new FeatureLayer(tableProtectionZoneLand);
         protectionZoneLand.setOpacity(0);
-        map.getOperationalLayers().add(protectionZoneLand);
+        /*map.getOperationalLayers().add(protectionZoneLand);*/
 
         ServiceFeatureTable tableProtectionZoneSea = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_sea));
         FeatureLayer protectionZoneSea = new FeatureLayer(tableProtectionZoneSea);
         protectionZoneSea.setOpacity(0);
-        map.getOperationalLayers().add(protectionZoneSea);
+        /*map.getOperationalLayers().add(protectionZoneSea);*/
+
         mFeatureLayerSelectByGeometry = new FeatureLayer[]{protectionZoneLand,protectionZoneSea};
+        map.getOperationalLayers().addAll(Arrays.asList(mFeatureLayerSelectByGeometry));
         //----------------------------------------------------------------------------------------
 
         //-----------------------------------设置identify的图层-------------------
