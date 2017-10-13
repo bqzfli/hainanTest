@@ -28,6 +28,7 @@ import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.GeometryType;
 import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.Polygon;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.layers.ArcGISMapImageLayer;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
@@ -42,6 +43,7 @@ import com.esri.arcgisruntime.mapping.view.DrawStatus;
 import com.esri.arcgisruntime.mapping.view.DrawStatusChangedEvent;
 import com.esri.arcgisruntime.mapping.view.DrawStatusChangedListener;
 import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.IdentifyLayerResult;
 import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
@@ -402,7 +404,7 @@ public class EsriMethod {
                             feature = iterator.next();
                             Envelope envelope = feature.getGeometry().getExtent();
 
-                            // TODO: 2017/10/8 显示结果
+                            // 显示结果
                             processGeoFromeFeature(feature, mapView);
                             //CountFeatureSelect += processRecordFromFeature(context, feature, layer);
                             CountFeatureSelect += processRecordFromFeature(context, feature, fields, layer);
@@ -555,7 +557,7 @@ public class EsriMethod {
     public void initQuaryByField(final Context context, final MapView mapView, final String f_caption, final String value,final OnTouchMapEvent viewEvent) {
         //refresh view
         if(viewEvent!=null){
-            viewEvent.refreshViewOnStartSearch(null);
+            viewEvent.refreshViewOnStartSearch(context.getResources().getString(R.string.search_by_field));
         }
 
         // clear the result of searching in history
@@ -592,7 +594,7 @@ public class EsriMethod {
                         Feature feature = results.next();
                         Envelope envelope = feature.getGeometry().getExtent();
 
-                        //// TODO: 2017/10/8 显示结果
+                        // TODO: 2017/10/8 显示结果
                         processGeoFromeFeature(feature,mapView);
                         /*countMax += processRecordFromFeature(context,feature,getFeatureLayerQuaryField());*/
                         countMax += processRecordFromFeature(context,feature,fields,mEsriManager.getFeatureLayerQuaryField());
@@ -660,7 +662,7 @@ public class EsriMethod {
      * @param touchMapEvent     查询是View层要做的事情
      */
     public void initSelectByGeometry(final Context context, final MapView mapView,final OnTouchMapEvent touchMapEvent){
-        //TODO 使用GPS位置，而不是屏幕点击位置
+        //通过点击位置做查找
         mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(context,mapView){
 
             // override the onSingleTapConfirmed gesture to handle a single tap on the MapView
@@ -679,7 +681,6 @@ public class EsriMethod {
                 // get the screen point where user tapped
                 android.graphics.Point screenPoint = new android.graphics.Point((int) e.getX(), (int) e.getY());
 
-                //todo 输入点使用GPS获取的位置，注意转换为地图坐标
                 // get the map location where user tapped
                 Point clickPoint = mMapView.screenToLocation(screenPoint);
                 // create select envelope by tolerance setting by users
@@ -710,6 +711,54 @@ public class EsriMethod {
     }
 
     /**
+     * 设置地理围栏查找方法
+     * 查找当前位置周边distance米内的目标，距离distance允许用户在系统设置中进行配置
+     * @param context
+     * @param mapView           地图控件
+     *                           当为null时对地图中所有操作图层进行查询；
+     *                           不为null时对layer进行查询
+     */
+    public void initSelectByLocationBoundary(final Context context, final MapView mapView,final OnTouchMapEvent viewRefreshEvent){
+        LocationDisplay locationDisplay = mapView.getLocationDisplay();
+        if(!locationDisplay.isStarted()){
+            locationDisplay.startAsync();
+        }
+        // get the location about the device
+        Point pointMyLocation =  locationDisplay.getMapLocation();
+
+        // create select envelope by tolerance setting by users
+        /*Envelope envelope = new Envelope(
+                pointMyLocation.getX() - Util.MapSelectDistance,
+                pointMyLocation.getY() - Util.MapSelectDistance,
+                pointMyLocation.getX() + Util.MapSelectDistance,
+                pointMyLocation.getY() + Util.MapSelectDistance,
+                mapView.getSpatialReference());*/
+        // create circle select boundary
+        Polygon boundaryCircle = Util.GetCircleBoundary(pointMyLocation,Util.MapSelectDistance,64,mapView.getMap().getSpatialReference());
+
+        // 绘制选择区域
+        Graphic graphic = new Graphic(boundaryCircle, Util.SymbolFill_SelectBoundary);
+        mapView.getGraphicsOverlays().get(Util.IndexGrighicOverlaySelectBoundary).getGraphics().add(graphic);
+
+        //refresh the view
+        if(viewRefreshEvent!=null){
+            String info = context.getResources().getString(R.string.search_by_boundary);
+            viewRefreshEvent.refreshViewOnStartSearch(info);
+        }
+        if(mEsriManager.getFeatureLayerSelectByGeometry()!=null&&mEsriManager.getFeatureLayerSelectByGeometry().length>0) {
+            //TODO 1.先进行当前位置是否在红线区内的搜索
+            //TODO 2.若当前位置不在任何缓冲区内，设置圆形缓冲区查找
+            searchInLayersByGeometry(context, mapView, mEsriManager.getFeatureLayerSelectByGeometry(), boundaryCircle, viewRefreshEvent);
+        }else{
+            if(viewRefreshEvent!=null){
+                String info = "没有可供查询的图层";
+                Exception ex = new Exception();
+                viewRefreshEvent.refreshViewOnSearchFailed(info,ex);
+            }
+        }
+    }
+
+    /**
      * 切换MapView的基础底图
      * @param mapView       地图控件
      * @param urlMapServer  作为底图的服务地址
@@ -726,7 +775,7 @@ public class EsriMethod {
      * 设置地图的显示范围
      * @param mapView   地图控件
      */
-    public void changeViewPoint(final MapView mapView){
+    public void initViewPoint(final MapView mapView){
         //海南项目范围
         Envelope env = new Envelope(108.62333711241558,18.159500862569853,111.04646712614706,20.16107656389238, SpatialReferences.getWgs84());
         //USA Census 2000
@@ -910,6 +959,11 @@ public class EsriMethod {
     public interface OnTouchMapEvent{
         /**
          * 开始搜索时触发的事件
+         * @param  info     进度条 或 弹窗可以显示的提示
+         */
+        void refreshViewOnStartSearch(String info);
+        /**
+         * 开始搜索时触发的事件
          * @param e      用户手指触摸地图控件时需要实现的方法
          */
         void refreshViewOnStartSearch(MotionEvent e);
@@ -929,5 +983,6 @@ public class EsriMethod {
          */
         void refreshViewOnSearchFailed(String info,Exception ex);
     }
+
 
 }

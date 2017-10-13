@@ -8,6 +8,10 @@ import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
 import com.esri.arcgisruntime.data.QueryParameters;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.PointCollection;
+import com.esri.arcgisruntime.geometry.Polygon;
+import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
@@ -41,7 +45,7 @@ public class Util {
      * 地图容差距离，用户可在系统设置里配置
      * 单位：米
      */
-    public static double MapSelectDistance = 5000;
+    public static double MapSelectDistance = 2700*1000; /*5000;*/
 
     /**
      * 空间查询方式，
@@ -54,9 +58,10 @@ public class Util {
      */
     private static ProgressDialog mProgressDialogSearching = null;
 
-    public static int IndexGrighicOverlayPolygon = 0;
-    public static int IndexGrighicOverlayPolyline = 1;
-    public static int IndexGrighicOverlayPoint = 2;
+    public static int IndexGrighicOverlaySelectBoundary = 0;
+    public static int IndexGrighicOverlayPolygon = 1;
+    public static int IndexGrighicOverlayPolyline = 2;
+    public static int IndexGrighicOverlayPoint = 3;
 
 
     /**
@@ -76,7 +81,18 @@ public class Util {
     public static SimpleFillSymbol SymbolFill =
             new SimpleFillSymbol(
                     SimpleFillSymbol.Style.DIAGONAL_CROSS,
-                    Color.argb(255, 0, 0, 128),
+                    Color.argb(128, 128, 0, 128),
+                    SymbolOutline);
+
+    /**
+     * color：Color.argb(128, 0, 255, 128)
+     * line：blue、1、solod
+     * style：Solid
+     */
+    public static SimpleFillSymbol SymbolFill_SelectBoundary =
+            new SimpleFillSymbol(
+                    SimpleFillSymbol.Style.SOLID,
+                    Color.argb(128, 128, 0, 128),
                     SymbolOutline);
 
     /**
@@ -168,5 +184,24 @@ public class Util {
             mProgressDialogSearching.dismiss();
         }
         mProgressDialogSearching = null;
+    }
+
+    /**
+     * 获取圆形缓冲区
+     * @param centerPoint       中心点
+     * @param distance          缓冲距离，单位：米
+     * @param count             数量
+     * @param spatialReference  地图投影
+     */
+    public static Polygon GetCircleBoundary(Point centerPoint, double distance, int count, SpatialReference spatialReference){
+        PointCollection pointCollection = new PointCollection(spatialReference);
+        for(int i=0;i<count;i++){
+            double angle = Math.PI*2/count;
+            pointCollection.add(new Point(
+                            centerPoint.getX()+distance*Math.cos(angle*i),
+                            centerPoint.getY()+distance*Math.sin(angle*i)));
+        }
+        Polygon polygon  = new Polygon(pointCollection);
+        return  polygon;
     }
 }

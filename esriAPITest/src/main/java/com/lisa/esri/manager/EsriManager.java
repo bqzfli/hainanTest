@@ -65,17 +65,23 @@ public class EsriManager {
         if(graphicsOverlays.size()!=0) {
             graphicsOverlays.clear();
         }
-        Util.IndexGrighicOverlayPolygon = graphicsOverlays.size();
+
+
+        Util.IndexGrighicOverlaySelectBoundary = graphicsOverlays.size();
         GraphicsOverlay graphicOverlay0 = new GraphicsOverlay();
         graphicsOverlays.add(graphicOverlay0);
 
-        Util.IndexGrighicOverlayPolyline = graphicsOverlays.size();
+        Util.IndexGrighicOverlayPolygon = graphicsOverlays.size();
         GraphicsOverlay graphicOverlay1 = new GraphicsOverlay();
         graphicsOverlays.add(graphicOverlay1);
 
-        Util.IndexGrighicOverlayPoint = graphicsOverlays.size();
+        Util.IndexGrighicOverlayPolyline = graphicsOverlays.size();
         GraphicsOverlay graphicOverlay2 = new GraphicsOverlay();
         graphicsOverlays.add(graphicOverlay2);
+
+        Util.IndexGrighicOverlayPoint = graphicsOverlays.size();
+        GraphicsOverlay graphicOverlay3 = new GraphicsOverlay();
+        graphicsOverlays.add(graphicOverlay3);
     }
 
     /**
@@ -86,7 +92,6 @@ public class EsriManager {
     public void initOperationLayers(Context context, ArcGISMap map){
 
         //-------海南项目空间查询图层
-        //todo 设置空间查询图层
         ServiceFeatureTable tableProtectionZoneLand = new ServiceFeatureTable(context.getResources().getString(R.string.service_layer_feature_protection_land));
         FeatureLayer protectionZoneLand = new FeatureLayer(tableProtectionZoneLand);
         protectionZoneLand.setOpacity(0);

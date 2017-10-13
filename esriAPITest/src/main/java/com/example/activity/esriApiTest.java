@@ -5,8 +5,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -23,12 +23,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
-import com.esri.arcgisruntime.data.Feature;
-import com.esri.arcgisruntime.data.FeatureQueryResult;
-import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.mapping.Viewpoint;
@@ -42,7 +38,6 @@ import com.lisa.esri.method.EsriMethod.OnTouchMapEvent;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 
 import it.moondroid.coverflow.components.ui.containers.FeatureCoverFlow;
 
@@ -92,6 +87,48 @@ public class esriApiTest extends AppCompatActivity
             }
         });
 
+        FloatingActionButton fabSelectByGPSBoundary = (FloatingActionButton) findViewById(R.id.select_gpsboundary);
+        fabSelectByGPSBoundary.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mEsriMethod.initSelectByLocationBoundary(esriApiTest.this,mMapView, new OnTouchMapEvent() {
+                    @Override
+                    public void refreshViewOnStartSearch(String info) {
+                        //显示查询滚动条
+                        Util.showProgressDialog(esriApiTest.this,info);
+                        //关闭结果清单
+                        mFeatureCoverFlow.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void refreshViewOnStartSearch(MotionEvent e) {
+
+                    }
+
+                    @Override
+                    public void refreshViewOnSearchSuccess(String info, int count) {
+                        if(mEsriMethod.isSelectByGeometryComplete()) {
+                            //如果所有图层均完成搜索
+                            Util.showMessage(esriApiTest.this, info);
+                            Log.i("GPSBoundary", "查询成功，查到结果数量：" + count + "条");
+                            Util.dismissProgressDialog();
+                        }
+                    }
+
+                    @Override
+                    public void refreshViewOnSearchFailed(String info, Exception ex) {
+                        Util.showMessage(esriApiTest.this,info+":\n"+ex.getMessage());
+                        Log.w("GPSBoundary",ex.getMessage());
+                        if(mEsriMethod.isSelectByGeometryComplete()) {
+                            //如果所有图层均完成搜索，关闭查询进度条
+                            Util.dismissProgressDialog();
+                        }
+                    }
+                });
+            }
+        });
+
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -135,8 +172,13 @@ public class esriApiTest extends AppCompatActivity
         //设置GraphicOverlay
         mEsriMethod.initGraphicOverlay(mMapView);
 
-        //设置空间查询方法
+        /*//设置空间查询方法
         mEsriMethod.initSelectByGeometry(this,mMapView,new OnTouchMapEvent(){
+            @Override
+            public void refreshViewOnStartSearch(String info) {
+
+            }
+
             @Override
             public void refreshViewOnStartSearch(MotionEvent e) {
                 //显示查询滚动条
@@ -164,10 +206,15 @@ public class esriApiTest extends AppCompatActivity
                     Util.dismissProgressDialog();
                 }
             }
-        });
+        });*/
 
         //设置地图identify事件
-        /*mEsriMethod.initIdentifyOperation(this,mMapView,new OnTouchMapEvent(){
+        mEsriMethod.initIdentifyOperation(this,mMapView,new OnTouchMapEvent(){
+            @Override
+            public void refreshViewOnStartSearch(String info) {
+
+            }
+
             @Override
             public void refreshViewOnStartSearch(MotionEvent e) {
                 //显示查询滚动条
@@ -190,7 +237,7 @@ public class esriApiTest extends AppCompatActivity
                 //关闭查询进度条
                 Util.dismissProgressDialog();
             }
-        });*/
+        });
 
         //设置显示当前位置，第一次加载界面时就显示
         //initLocationDisplay(mMapView);
@@ -198,7 +245,7 @@ public class esriApiTest extends AppCompatActivity
         mEsriMethod.initLocationOperation(this,mMapView,mSpin);
 
         //设置地图显示范围
-        mEsriMethod.changeViewPoint(mMapView);
+        mEsriMethod.initViewPoint(mMapView);
 
         //设置地图渲染状态
         mEsriMethod.initDrawStatusChanged(mMapView,progressBar);
@@ -259,6 +306,11 @@ public class esriApiTest extends AppCompatActivity
                     search_edit_frame.setPressed(false);
                     String value = v.getText().toString();
                     mEsriMethod.initQuaryByField(esriApiTest.this,mMapView,strQueryField, value,new OnTouchMapEvent(){
+                        @Override
+                        public void refreshViewOnStartSearch(String info) {
+                            Util.showProgressDialog(esriApiTest.this,info);
+                        }
+
                         @Override
                         public void refreshViewOnStartSearch(MotionEvent e) {
                             // show progressDialog

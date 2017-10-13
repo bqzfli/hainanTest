@@ -17,4 +17,6 @@
 
     <string name="search_by_field">正在努力搜索满足条件的目标，\n响应时间依赖于服务器效率与网络环境，\n请耐心等待！</string>
 
+    <string name="search_by_boundary">正在努力搜索您周边的红线保护区目标，\n响应时间依赖于服务器效率与网络环境，\n请耐心等待！</string>
+
 </resources>
