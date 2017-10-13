@@ -736,7 +736,7 @@ public class EsriMethod {
         // create circle select boundary
         Polygon boundaryCircle = Util.GetCircleBoundary(pointMyLocation,Util.MapSelectDistance,64,mapView.getMap().getSpatialReference());
 
-        // 绘制选择区域
+        //todo 绘制选择区域  不显示选择缓冲区时刻意隐藏
         Graphic graphic = new Graphic(boundaryCircle, Util.SymbolFill_SelectBoundary);
         mapView.getGraphicsOverlays().get(Util.IndexGrighicOverlaySelectBoundary).getGraphics().add(graphic);
 
