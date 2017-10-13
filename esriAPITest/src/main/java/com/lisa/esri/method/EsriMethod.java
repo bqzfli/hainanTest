@@ -195,6 +195,7 @@ public class EsriMethod {
         mapView.getGraphicsOverlays().get(Util.IndexGrighicOverlayPolygon).getGraphics().clear();
         mapView.getGraphicsOverlays().get(Util.IndexGrighicOverlayPolyline).getGraphics().clear();
         mapView.getGraphicsOverlays().get(Util.IndexGrighicOverlayPoint).getGraphics().clear();
+        mapView.getGraphicsOverlays().get(Util.IndexGrighicOverlaySelectBoundary).getGraphics().clear();
     }
 
     /**
