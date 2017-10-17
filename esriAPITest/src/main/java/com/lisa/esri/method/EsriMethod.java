@@ -62,6 +62,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import spinner.ItemData;
@@ -386,6 +387,7 @@ public class EsriMethod {
         for(int i=0;i<layers.length;i++) {
             final FeatureLayer layer = layers[i];
             final ListenableFuture<FeatureQueryResult> future = layer.selectFeaturesAsync(query, FeatureLayer.SelectionMode.NEW);
+            String expression = layer.getDefinitionExpression();
             // add done loading listener to fire when the selection returns
             future.addDoneListener(new Runnable() {
                 @Override
@@ -577,6 +579,7 @@ public class EsriMethod {
 
         // call select features
         final ListenableFuture<FeatureQueryResult> future =  mEsriManager.getFeatureLayerQuaryField().getFeatureTable().queryFeaturesAsync(query);
+        String expression = mEsriManager.getFeatureLayerQuaryField().getDefinitionExpression();
 
         // add done loading listener to fire when the selection returns
         future.addDoneListener(new Runnable() {
@@ -692,13 +695,19 @@ public class EsriMethod {
                         clickPoint.getY() + Util.MapSelectDistance,
                         mapView.getSpatialReference());
 
+                Geometry boundaryCircle = Util.GetCircleBoundary(clickPoint,Util.MapSelectDistance,25,mapView.getSpatialReference());
+
+                //todo 绘制选择区域  不显示选择缓冲区时刻意隐藏
+                Graphic graphic = new Graphic(boundaryCircle, Util.SymbolFill_SelectBoundary);
+                mapView.getGraphicsOverlays().get(Util.IndexGrighicOverlaySelectBoundary).getGraphics().add(graphic);
+
                 //refresh the view
                 if(touchMapEvent!=null){
                     touchMapEvent.refreshViewOnStartSearch(e);
                 }
                 if(mEsriManager.getFeatureLayerSelectByGeometry()!=null&&mEsriManager.getFeatureLayerSelectByGeometry().length>0) {
                     //设置多图层查询
-                    searchInLayersByGeometry(context, mapView, mEsriManager.getFeatureLayerSelectByGeometry(), envelope, touchMapEvent);
+                    searchInLayersByGeometry(context, mapView, mEsriManager.getFeatureLayerSelectByGeometry(), boundaryCircle, touchMapEvent);
                 }else{
                     if(touchMapEvent!=null){
                         String info = "没有可供查询的图层";
@@ -891,13 +900,17 @@ public class EsriMethod {
             Map<String, Object> attributes = identifiedElement.getAttributes();
             Map<String, Object> result = new HashMap<String, Object>();
             String layerName = layerContent.getName();
+            String fieldName = "";
+            Object fieldValue = "";
             /*String geoJson = geo.toJson();*/
             if (layerName != null &&/* geoJson != null*/ geo!=null&& attributes != null) {
                 result.put(Util.KEY_LAYERNAME, layerName);
                 /*result.put(Util.KEY_GEOJSON,geoJson);*/
                 result.put(Util.KEY_GEO,geo);
                 for(Field field:fields){
-                    result.put(field.getName(),attributes.get(field.getName()));
+                    fieldName = field.getName();
+                    fieldValue = attributes.get(field.getName());
+                    result.put(fieldName,fieldValue);
                 }
                 Selection.SearchResultFromOperationLayer.add(result);
             }else{

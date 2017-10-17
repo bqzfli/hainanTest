@@ -24,6 +24,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.geometry.Geometry;
@@ -172,7 +173,7 @@ public class esriApiTest extends AppCompatActivity
         //设置GraphicOverlay
         mEsriMethod.initGraphicOverlay(mMapView);
 
-        /*//设置空间查询方法
+        //设置空间查询方法
         mEsriMethod.initSelectByGeometry(this,mMapView,new OnTouchMapEvent(){
             @Override
             public void refreshViewOnStartSearch(String info) {
@@ -206,10 +207,10 @@ public class esriApiTest extends AppCompatActivity
                     Util.dismissProgressDialog();
                 }
             }
-        });*/
+        });
 
         //设置地图identify事件
-        mEsriMethod.initIdentifyOperation(this,mMapView,new OnTouchMapEvent(){
+        /*mEsriMethod.initIdentifyOperation(this,mMapView,new OnTouchMapEvent(){
             @Override
             public void refreshViewOnStartSearch(String info) {
 
@@ -237,7 +238,7 @@ public class esriApiTest extends AppCompatActivity
                 //关闭查询进度条
                 Util.dismissProgressDialog();
             }
-        });
+        });*/
 
         //设置显示当前位置，第一次加载界面时就显示
         //initLocationDisplay(mMapView);
