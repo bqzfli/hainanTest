@@ -52,6 +52,43 @@ public class esriApiTest extends AppCompatActivity
     private EsriMethod mEsriMethod = new EsriMethod();
     private SearchView mSearchView = null;
     private FeatureCoverFlow mFeatureCoverFlow = null;
+    /**
+     * 空间查找的界面刷新事件
+     */
+    private OnTouchMapEvent mOnTouchMapEventQuaryByGeometry = new OnTouchMapEvent(){
+        @Override
+        public void refreshViewOnStartSearch(String info) {
+
+        }
+
+        @Override
+        public void refreshViewOnStartSearch(MotionEvent e) {
+            //显示查询滚动条
+            Util.showProgressDialog(esriApiTest.this,getResources().getString(R.string.search_by_screenlocation));
+            //关闭结果清单
+            mFeatureCoverFlow.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void refreshViewOnSearchSuccess(String info, int count) {
+            if(mEsriMethod.isSelectByGeometryComplete()) {
+                //如果所有图层均完成搜索
+                Util.showMessage(esriApiTest.this, info);
+                Log.i("Identify", "查询成功，查到结果数量：" + count + "条");
+                Util.dismissProgressDialog();
+            }
+        }
+
+        @Override
+        public void refreshViewOnSearchFailed(String info, Exception ex) {
+            Util.showMessage(esriApiTest.this,info+":\n"+ex.getMessage());
+            Log.w("Identify",ex.getMessage());
+            if(mEsriMethod.isSelectByGeometryComplete()) {
+                //如果所有图层均完成搜索，关闭查询进度条
+                Util.dismissProgressDialog();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,7 +188,8 @@ public class esriApiTest extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //提取选中要素
-                Map<String,Object> result = Selection.SearchResultFromOperationLayer.get(position);
+                Map<String,Object> result  = (Map<String,Object>)mFeatureCoverFlow.getAdapter().getItem(position);
+                /*Map<String,Object> result = Selection.SearchResultFromOperationLayer.get(position);*/
                 /*String strGeo = (String)result.get(Util.KEY_GEOJSON);
                 Geometry geo = Geometry.fromJson(strGeo);*/
                 Geometry geo = (Geometry)result.get(Util.KEY_GEO);
@@ -174,43 +212,10 @@ public class esriApiTest extends AppCompatActivity
         mEsriMethod.initGraphicOverlay(mMapView);
 
         //设置空间查询方法
-        mEsriMethod.initSelectByGeometry(this,mMapView,new OnTouchMapEvent(){
-            @Override
-            public void refreshViewOnStartSearch(String info) {
-
-            }
-
-            @Override
-            public void refreshViewOnStartSearch(MotionEvent e) {
-                //显示查询滚动条
-                Util.showProgressDialog(esriApiTest.this,getResources().getString(R.string.search_by_screenlocation));
-                //关闭结果清单
-                mFeatureCoverFlow.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void refreshViewOnSearchSuccess(String info, int count) {
-                if(mEsriMethod.isSelectByGeometryComplete()) {
-                    //如果所有图层均完成搜索
-                    Util.showMessage(esriApiTest.this, info);
-                    Log.i("Identify", "查询成功，查到结果数量：" + count + "条");
-                    Util.dismissProgressDialog();
-                }
-            }
-
-            @Override
-            public void refreshViewOnSearchFailed(String info, Exception ex) {
-                Util.showMessage(esriApiTest.this,info+":\n"+ex.getMessage());
-                Log.w("Identify",ex.getMessage());
-                if(mEsriMethod.isSelectByGeometryComplete()) {
-                    //如果所有图层均完成搜索，关闭查询进度条
-                    Util.dismissProgressDialog();
-                }
-            }
-        });
+        /*mEsriMethod.initSelectByGeometry(this,mMapView,mOnTouchMapEventQuaryByGeometry);*/
 
         //设置地图identify事件
-        /*mEsriMethod.initIdentifyOperation(this,mMapView,new OnTouchMapEvent(){
+        mEsriMethod.initIdentifyOperation(this,mMapView,new OnTouchMapEvent(){
             @Override
             public void refreshViewOnStartSearch(String info) {
 
@@ -238,7 +243,7 @@ public class esriApiTest extends AppCompatActivity
                 //关闭查询进度条
                 Util.dismissProgressDialog();
             }
-        });*/
+        });
 
         //设置显示当前位置，第一次加载界面时就显示
         //initLocationDisplay(mMapView);
@@ -249,7 +254,7 @@ public class esriApiTest extends AppCompatActivity
         mEsriMethod.initViewPoint(mMapView);
 
         //设置地图渲染状态
-        mEsriMethod.initDrawStatusChanged(mMapView,progressBar);
+        mEsriMethod.initDrawStatusChanged(this,mMapView,progressBar,mOnTouchMapEventQuaryByGeometry);
     }
 
     @Override

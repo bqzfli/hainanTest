@@ -49,6 +49,7 @@ import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.portal.Portal;
 import com.esri.arcgisruntime.security.UserCredential;
+import com.example.activity.esriApiTest;
 import com.example.hnTest.R;
 import com.example.hnTest.Util;
 import com.lisa.esri.manager.EsriManager;
@@ -239,10 +240,14 @@ public class EsriMethod {
 
     /**
      * 设置地图渲染完成状态的监控
+     * @param context
      * @param mapView       地图控件
      * @param progressBar   进图条
+     * @param onTouchMapEvent   界面渲染的效果
      */
-    public void initDrawStatusChanged(MapView mapView,final ProgressBar progressBar){
+    public void initDrawStatusChanged(final Context context,
+                                      final MapView mapView, final ProgressBar progressBar,
+                                      final OnTouchMapEvent onTouchMapEvent){
 
         //[DocRef: Name=Monitor map drawing, Category=Work with maps, Topic=Display a map]
         mapView.addDrawStatusChangedListener(new DrawStatusChangedListener() {
@@ -253,6 +258,9 @@ public class EsriMethod {
                     Log.d("drawStatusChanged", "spinner visible");
                 }else if (drawStatusChangedEvent.getDrawStatus() == DrawStatus.COMPLETED){
                     progressBar.setVisibility(View.INVISIBLE);
+
+                    //TODO 地图加载完成了，此时可以进行搜索
+                    initSelectByLocationBoundary(context,mapView, onTouchMapEvent);
                 }
             }
         });
@@ -729,6 +737,11 @@ public class EsriMethod {
      *                           不为null时对layer进行查询
      */
     public void initSelectByLocationBoundary(final Context context, final MapView mapView,final OnTouchMapEvent viewRefreshEvent){
+        // clear the result of searching in history
+        clearGraphicOverlay(mapView);
+        // clear the list of searching in history
+        Selection.SearchResultFromOperationLayer.clear();
+
         LocationDisplay locationDisplay = mapView.getLocationDisplay();
         if(!locationDisplay.isStarted()){
             locationDisplay.startAsync();

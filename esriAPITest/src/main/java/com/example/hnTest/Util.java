@@ -45,7 +45,7 @@ public class Util {
      * 地图容差距离，用户可在系统设置里配置
      * 单位：米
      */
-    public static double MapSelectDistance = /*2700*1000;*/ 5000;
+    public static double MapSelectDistance = 3200*1000;/*2650*1000;*/ /*5000;*/
 
     /**
      * 空间查询方式，
