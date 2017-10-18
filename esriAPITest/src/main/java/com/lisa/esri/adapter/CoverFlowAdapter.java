@@ -42,7 +42,11 @@ public class CoverFlowAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int pos) {
-        return mData.get(pos);
+        if(pos<mData.size()) {
+            return mData.get(pos);
+        }else{
+            return  mData.get((pos%mData.size()));
+        }
     }
 
     @Override
