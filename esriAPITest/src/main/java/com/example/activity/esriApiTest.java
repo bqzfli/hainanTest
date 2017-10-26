@@ -37,6 +37,7 @@ import com.example.hnTest.R;
 import com.example.hnTest.Util;
 import com.lisa.esri.adapter.CoverFlowAdapter;
 import com.lisa.esri.manager.Selection;
+import com.lisa.esri.method.Authorization;
 import com.lisa.esri.method.EsriMethod;
 import com.lisa.esri.method.EsriMethod.OnTouchMapEvent;
 
@@ -98,11 +99,12 @@ public class esriApiTest extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         //授权app
-        /*mEsriMethod.initAuthenticate(
+        Authorization auth = new Authorization();
+        /*auth.initAuthenticate(
                 (String)getResources().getString(R.string.portal_arcgisonline),
                 (String)getResources().getString(R.string.ESRINAME),
                 (String)getResources().getString(R.string.ESRIPASSWORD));*/
-        mEsriMethod.initAuthenticate();
+        auth.initAuthenticate();
 
         //界面设置
         setContentView(R.layout.activity_esri_api_test);
