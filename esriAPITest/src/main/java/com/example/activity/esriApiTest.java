@@ -93,8 +93,13 @@ public class esriApiTest extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         //授权app
-        //mEsriMethod.initAuthenticate(getResources().getString(R.string.portal_arcgisonline),"用户名","密码");
+        /*mEsriMethod.initAuthenticate(
+                (String)getResources().getString(R.string.portal_arcgisonline),
+                (String)getResources().getString(R.string.ESRINAME),
+                (String)getResources().getString(R.string.ESRIPASSWORD));*/
+        mEsriMethod.initAuthenticate();
 
         //界面设置
         setContentView(R.layout.activity_esri_api_test);
@@ -198,6 +203,8 @@ public class esriApiTest extends AppCompatActivity
                 mFeatureCoverFlow.setVisibility(View.GONE);
             }
         });
+
+        mMapView.setAttributionTextVisible(false);
 
         //设置基础底图
         //天地图底图

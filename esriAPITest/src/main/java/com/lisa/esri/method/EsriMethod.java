@@ -104,6 +104,17 @@ public class EsriMethod {
     }
 
     /**
+     * 授权
+     */
+    public void initAuthenticate(){
+        // connect to ArcGIS Online or an ArcGIS portal as a named user
+        // The code below shows the use of token based security but
+        // for ArcGIS Online you may consider using Oauth authentication.
+        String strKey = "runtimelite,1000,rud7032709275,none,C6JC7XLS1M0H8YAJM150";
+        ArcGISRuntimeEnvironment.setLicense(strKey);
+    }
+
+    /**
      * 设置Portal验证
      * 在所有ArcGIS API 功能之前调用
      * @param portalUrl     门户的url
@@ -260,7 +271,7 @@ public class EsriMethod {
                     progressBar.setVisibility(View.INVISIBLE);
 
                     //TODO 地图加载完成了，此时可以进行搜索
-                    initSelectByLocationBoundary(context,mapView, onTouchMapEvent);
+                    //initSelectByLocationBoundary(context,mapView, onTouchMapEvent);
                 }
             }
         });
