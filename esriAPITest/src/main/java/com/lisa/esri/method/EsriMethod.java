@@ -110,7 +110,7 @@ public class EsriMethod {
         // connect to ArcGIS Online or an ArcGIS portal as a named user
         // The code below shows the use of token based security but
         // for ArcGIS Online you may consider using Oauth authentication.
-
+        String strKey = "runtimelite,1000,rud7032709275,none,C6JC7XLS1M0H8YAJM150";
         ArcGISRuntimeEnvironment.setLicense(strKey);
     }
 

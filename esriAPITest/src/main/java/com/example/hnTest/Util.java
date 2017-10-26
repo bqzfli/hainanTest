@@ -23,6 +23,7 @@ import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 
 public class Util {
 
+
     /**
      * 图层名称关键字
      */

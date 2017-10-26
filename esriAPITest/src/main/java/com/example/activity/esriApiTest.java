@@ -1,5 +1,7 @@
 package com.example.activity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -19,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -289,24 +292,20 @@ public class esriApiTest extends AppCompatActivity
         edit.setSelection(value.length());
         final String strQueryField = getResources().getString(R.string.query_field);
         mSearchView.setQueryHint("输入查找对象的“"+strQueryField+"”");
-    
         final LinearLayout search_edit_frame = (LinearLayout) mSearchView.findViewById(R.id.search_edit_frame);
         search_edit_frame.setClickable(true);
-    
         edit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 search_edit_frame.setPressed(hasFocus);
             }
         });
-    
         edit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 search_edit_frame.setPressed(true);
             }
         });
-    
         edit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -349,7 +348,7 @@ public class esriApiTest extends AppCompatActivity
         });
         return true;
     }
-    
+
     
     @Override
     protected void onPause(){
@@ -374,6 +373,8 @@ public class esriApiTest extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }else if (id == R.id.action_settings_distance ){
+            settingQuaryDistance();
         }
 
         return super.onOptionsItemSelected(item);
@@ -409,6 +410,36 @@ public class esriApiTest extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    /**
+     * 设置搜索半径
+     */
+    private void settingQuaryDistance(){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setIcon(android.R.drawable.ic_dialog_info);
+            builder.setTitle("请输入搜索距离");
+            //把布局文件先填充成View对象
+            View view = View.inflate(this, R.layout.dialog_setting_distance, null);
+            //把填充得来的view对象设置为对话框显示内容
+            builder.setView(view);
+            final EditText editText=(EditText)view.findViewById(R.id.et_distance) ;
+            editText.setText(""+ Util.MapSelectDistance/1000);
+            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String distance=editText.getText().toString();
+                    Util.MapSelectDistance=Double.parseDouble(distance)*1000;
+                    dialog.dismiss();
+                }
+            });
+            builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            builder.show();
     }
 
 
