@@ -3,9 +3,13 @@
 buildscript {
     repositories {
         jcenter()
+        google()
+        maven { url 'http://maven.google.com'}
+        maven { url 'https://esri.bintray.com/arcgis' }
+        maven { url "https://jitpack.io" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.3'
+        classpath 'com.android.tools.build:gradle:3.1.1'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -18,7 +22,7 @@ allprojects {
         maven { url 'https://esri.bintray.com/arcgis' }
         maven { url "https://jitpack.io" }
         mavenCentral()
-
+        google()
     }
 }
 
@@ -27,12 +31,13 @@ task clean(type: Delete) {
 }
 
 
-subprojects{
-    afterEvaluate {project ->
-        if(project.hasProperty("dependencies")){
-            dependencies {
-                compile 'com.esri.arcgisruntime:arcgis-android:100.0.0'
-            }
-        }
-    }
-}
+//subprojects{
+//    afterEvaluate {project ->
+//        if(project.hasProperty("dependencies")){
+//            dependencies {
+//                compile 'com.esri.arcgisruntime:arcgis-android:100.0.1'
+//
+//            }
+//        }
+//    }
+//}
